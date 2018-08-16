@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="C、C++语言需要手动管理内存的分配与释放（常用方法：malloc(), calloc(), realloc()和free()等）。而JavaScript与Java、C#相似，内置了垃圾回收器，能自动管理内存的分配与释放。 内存生命周期: 分配内存 使用分配的内存(读与写操作) 当应用程序不再需要时，释放掉已分配的内存   虽然内存自动进行分配、释放，但并不意味着开发者不需要关注内存管">
+<meta name="keywords" content="内存,CG,垃圾回收">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JavaScript内存那点事">
+<meta property="og:url" content="http://123fe.com/2017/09/30/JavaScript内存那点事/index.html">
+<meta property="og:site_name" content="Sogou.dh.fe">
+<meta property="og:description" content="C、C++语言需要手动管理内存的分配与释放（常用方法：malloc(), calloc(), realloc()和free()等）。而JavaScript与Java、C#相似，内置了垃圾回收器，能自动管理内存的分配与释放。 内存生命周期: 分配内存 使用分配的内存(读与写操作) 当应用程序不再需要时，释放掉已分配的内存   虽然内存自动进行分配、释放，但并不意味着开发者不需要关注内存管">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:image" content="http://123fe.com/2017/09/30/JavaScript内存那点事/life-cycle.png">
+<meta property="og:image" content="http://123fe.com/2017/09/30/JavaScript内存那点事/cycle.png">
+<meta property="og:image" content="http://123fe.com/2017/09/30/JavaScript内存那点事/mark-sweep.gif">
+<meta property="og:image" content="http://123fe.com/2017/09/30/JavaScript内存那点事/no-cycle.png">
+<meta property="og:updated_time" content="2018-08-16T02:52:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JavaScript内存那点事">
+<meta name="twitter:description" content="C、C++语言需要手动管理内存的分配与释放（常用方法：malloc(), calloc(), realloc()和free()等）。而JavaScript与Java、C#相似，内置了垃圾回收器，能自动管理内存的分配与释放。 内存生命周期: 分配内存 使用分配的内存(读与写操作) 当应用程序不再需要时，释放掉已分配的内存   虽然内存自动进行分配、释放，但并不意味着开发者不需要关注内存管">
+<meta name="twitter:image" content="http://123fe.com/2017/09/30/JavaScript内存那点事/life-cycle.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>JavaScript内存那点事</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">archives</a></li>
+         
+          <li><a href="https://github.com/sgdh-fe">Github</a></li>
+         
+          <li><a href="http://git.dh.sogou-inc.com/groups/fe">Projects</a></li>
+         
+          <li><a href="/about/">About</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2017/11/01/内存泄露之Listeners/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2017/09/19/async-vs-defer/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://123fe.com/2017/09/30/JavaScript内存那点事/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&text=JavaScript内存那点事"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&title=JavaScript内存那点事"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&is_video=false&description=JavaScript内存那点事"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=JavaScript内存那点事&body=Check out this article: http://123fe.com/2017/09/30/JavaScript内存那点事/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&title=JavaScript内存那点事"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&title=JavaScript内存那点事"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&title=JavaScript内存那点事"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&title=JavaScript内存那点事"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&name=JavaScript内存那点事&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#内存生命周期"><span class="toc-number">1.</span> <span class="toc-text">内存生命周期:</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Javascript中的内存分配"><span class="toc-number">2.</span> <span class="toc-text">Javascript中的内存分配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GC-Garbage-collection"><span class="toc-number">3.</span> <span class="toc-text">GC(Garbage collection)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Reference-counting-garbage-collection（引用计数）"><span class="toc-number">3.1.</span> <span class="toc-text">Reference-counting garbage collection（引用计数）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#引用计数的限制：循环引用"><span class="toc-number">3.1.1.</span> <span class="toc-text">引用计数的限制：循环引用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#常见问题实例"><span class="toc-number">3.1.2.</span> <span class="toc-text">常见问题实例</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Mark-and-sweep-algorithm（标记清除）"><span class="toc-number">3.2.</span> <span class="toc-text">Mark-and-sweep algorithm（标记清除）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#循环引用不再是问题"><span class="toc-number">3.2.1.</span> <span class="toc-text">循环引用不再是问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#限制：需要明确无法到达的对象"><span class="toc-number">3.2.2.</span> <span class="toc-text">限制：需要明确无法到达的对象</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文章："><span class="toc-number">4.</span> <span class="toc-text">参考文章：</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        JavaScript内存那点事
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">singsong</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2017-09-30T08:28:53.000Z" itemprop="datePublished">2017-09-30</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/CG/">CG</a>, <a class="tag-link" href="/tags/内存/">内存</a>, <a class="tag-link" href="/tags/垃圾回收/">垃圾回收</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>C、C++语言需要手动管理内存的分配与释放（常用方法：malloc(), calloc(), realloc()和free()等）。而JavaScript与Java、C#相似，内置了垃圾回收器，能自动管理内存的分配与释放。</p>
+<h2 id="内存生命周期"><a href="#内存生命周期" class="headerlink" title="内存生命周期:"></a>内存生命周期:</h2><ol>
+<li>分配内存</li>
+<li>使用分配的内存(读与写操作)</li>
+<li>当应用程序不再需要时，释放掉已分配的内存</li>
+</ol>
+<p><img src="./life-cycle.png" alt="lifecycle"></p>
+<p>虽然内存自动进行分配、释放，但并不意味着开发者不需要关注内存管理。因为一些不好的编码会导致<a href="https://en.wikipedia.org/wiki/Memory_leak#Reference_counting_and_cyclic_references" target="_blank" rel="external">内存泄露</a>，即应用程序不再需要的内存没有被释放掉。因此了解内存管理是很重要的</p>
+<h2 id="Javascript中的内存分配"><a href="#Javascript中的内存分配" class="headerlink" title="Javascript中的内存分配"></a>Javascript中的内存分配</h2><p>当声明变量时，JavaScript会自动为变量分配内存<br><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> numberVar = <span class="number">100</span>; <span class="comment">//为整数分配内存</span></div><div class="line"><span class="keyword">var</span> stringVar = <span class="string">'node simplified'</span>;  <span class="comment">// 为字符串分配内存 </span></div><div class="line"><span class="keyword">var</span> objectVar = &#123;<span class="attr">a</span>: <span class="number">1</span>&#125;; <span class="comment">// 为对象分配内存</span></div><div class="line"><span class="keyword">var</span> a = [<span class="number">1</span>, <span class="literal">null</span>, <span class="string">'abra'</span>]; <span class="comment">// 为数组分配内存</span></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">f</span>(<span class="params">a</span>) </span>&#123;</div><div class="line">  <span class="keyword">return</span> a + <span class="number">2</span>;</div><div class="line">&#125; <span class="comment">// 为函数分配内存</span></div></pre></td></tr></table></figure></p>
+<p>当内存不再需要时，会自动释放掉。内存泄露和在释放内存时出现的大部分与内存相关的问题，而要找出那些被垃圾回收器跟踪不再需要的而又没有被释放的内存是很困难的。</p>
+<h2 id="GC-Garbage-collection"><a href="#GC-Garbage-collection" class="headerlink" title="GC(Garbage collection)"></a>GC(Garbage collection)</h2><p>垃圾回收是追踪并释放应用程序不再使用的内存过程。垃圾回收器通过算法来实现追踪应用程序不再使用的内存。主要涉及的垃圾回收算法如下：</p>
+<ul>
+<li>Reference-counting garbage collection（引用计数）</li>
+<li>Mark-and-sweep algorithm（标记清除）</li>
+</ul>
+<h3 id="Reference-counting-garbage-collection（引用计数）"><a href="#Reference-counting-garbage-collection（引用计数）" class="headerlink" title="Reference-counting garbage collection（引用计数）"></a>Reference-counting garbage collection（引用计数）</h3><p>引用计数算法是一种最基础的垃圾回收算法，当一个对象的引用数为零时，会被自动回收。该算法将一个对象的引用数为0时视为应用程序不再需要的内存。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">!<span class="function"><span class="keyword">function</span> (<span class="params"></span>)</span>&#123;</div><div class="line">  <span class="keyword">var</span> o1 = &#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: <span class="number">2</span>&#125;&#125;,<span class="comment">// 两个对象被创建A:&#123;a: &#123;b: 2&#125;&#125;，B:&#123;b: 2&#125;，对象B被对象A的属性a引用，对象A被赋值给变量o1。A和B的引用数都为1，因此不能被回收。</span></div><div class="line">      o2 = o1; <span class="comment">// 将对象A赋给变量o2。此时A引用数为2，B引用数1。</span></div><div class="line">      o1 = <span class="number">1</span>;<span class="comment">// 将变量o1对对象A引用切断。此时A引用数为1，B引用数1。</span></div><div class="line">  <span class="keyword">var</span> oa = o2.a; <span class="comment">// 将对象B赋值给变量oa。此时A引用数为1，B引用数2。</span></div><div class="line">      o2 = <span class="string">'foo'</span>; <span class="comment">// 将变量o2对对象A引用切断。此时A引用数为0，B引用数1。因为对象A的a属性被变量oa引用，因此对象A不能被释放。</span></div><div class="line">      oa = <span class="literal">null</span>; <span class="comment">// 将变量oa对对象B引用切断。此时A引用数为0，B引用数0。A与B会被回收。</span></div><div class="line">&#125;()</div></pre></td></tr></table></figure>
+<h4 id="引用计数的限制：循环引用"><a href="#引用计数的限制：循环引用" class="headerlink" title="引用计数的限制：循环引用"></a>引用计数的限制：循环引用</h4><p>  循环引用存在一个限制。如下实例，两个对象相互引用，形成一个循环引用。正常情况下，当函数执行完后，对应的内存会被释放掉。而<strong>引用计数算法</strong>会将循环引用对象的引用数都视为至少为1，因此不能被回收。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">f</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="keyword">var</span> o = &#123;&#125;;</div><div class="line">  <span class="keyword">var</span> o2 = &#123;&#125;;</div><div class="line">  o.a = o2; <span class="comment">// o references o2</span></div><div class="line">  o2.a = o; <span class="comment">// o2 references o</span></div><div class="line"></div><div class="line">  <span class="keyword">return</span> <span class="string">'azerty'</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line">f();</div></pre></td></tr></table></figure>
+<p><img src="./cycle.png" alt="cycle"></p>
+<h4 id="常见问题实例"><a href="#常见问题实例" class="headerlink" title="常见问题实例"></a>常见问题实例</h4><p>  IE6-7的DOM对象是基于计数引用算法进行垃圾回收的。而循环引用通常会导致内存泄露：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> div;</div><div class="line"><span class="built_in">window</span>.onload = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  div = <span class="built_in">document</span>.getElementById(<span class="string">'myDivElement'</span>);</div><div class="line">  div.circularReference = div;</div><div class="line">  div.lotsOfData = <span class="keyword">new</span> <span class="built_in">Array</span>(<span class="number">10000</span>).join(<span class="string">'*'</span>);</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>如上述实例，DOM元素div通过自身的“circularReference”属性循环引用自己。如果没有显式将该属性删除或设为null，计数引用垃圾回收器会始终持有至少一个引用。即使DOM元素从DOM树种移除，DOM元素的内存会一直存在。如果DOM元素持有一些数据（如实例中“lotsData”属性），该数据对应的内存也无法被释放。<br></p>
+<h3 id="Mark-and-sweep-algorithm（标记清除）"><a href="#Mark-and-sweep-algorithm（标记清除）" class="headerlink" title="Mark-and-sweep algorithm（标记清除）"></a>Mark-and-sweep algorithm（标记清除）</h3><p>该算法将“对象不再需要”的定义简化为“对象不可到达”。<br>这个算法假设有一组被称为roots的对象（在JavaScript中，root就是全局对象）。垃圾回收器会定期地从这些roots开始，查找所有从根开始引用的对象，然后查找这些对象引用的对象……。从roots开始，垃圾回收器会查找所有可到达对象，并回收不可到达的对象。</p>
+<p>为了确定对象是否需要，该算法要确定对象是否可到达。由如下步骤组成：</p>
+<ol>
+<li>垃圾回收器会创建一组roots，roots通常是持有引用的全局变量。在JavaScript中，window对象就可作为root的全局变量。</li>
+<li>垃圾回收器会检查所有的roots并标记为活跃状态。然后递归遍历所有的子变量。只要从root不能到达的都被标记为垃圾。</li>
+<li>所有没有被标记为活跃状态的内存块都被视为垃圾。垃圾回收器就可以释放这部分内存并把释放的内存返回给操作系统。</li>
+</ol>
+<p><img src="./mark-sweep.gif" alt=""></p>
+<p>这个算法比引用计数算法更优，因为“零引用的对象”总是不可到达的，但反之则不一定，如循环引用。<br>截至2012年，所有现代浏览器都内置了<strong>标记清除垃圾回收器</strong>。在过去几年里所有对JavaScript垃圾回收的改进（<a href="http://www.memorymanagement.org/glossary/g.html#term-generational-garbage-collection" target="_blank" rel="external">generational/incremental/concurrent/parallel garbage collection</a>）都是基于<strong>标记清除算法</strong>来实现的，并没有改变<strong>标记清除算法</strong>本身和它对“对象不再需要”定义的简化。<br></p>
+<h4 id="循环引用不再是问题"><a href="#循环引用不再是问题" class="headerlink" title="循环引用不再是问题"></a>循环引用不再是问题</h4><p>前面循环引用的实例中，在函数执行完后，两个对象不再被全局对象可访问的对象引用。因此这两个对象被垃圾回收器标记为不可到达，接着被回收掉。<br><img src="./no-cycle.png" alt=""></p>
+<h4 id="限制：需要明确无法到达的对象"><a href="#限制：需要明确无法到达的对象" class="headerlink" title="限制：需要明确无法到达的对象"></a>限制：需要明确无法到达的对象</h4><p>尽管这是一个限制，但实践中很少遇见这种情况，所以开发者不太会去关心垃圾回收机制。</p>
+<h2 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h2><ul>
+<li><a href="http://www.nodesimplified.com/2017/08/javascript-memory-management-and.html" target="_blank" rel="external">Memory Management And Garbage Collection In Javascript</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management" target="_blank" rel="external">Memory Management</a></li>
+<li><a href="https://blog.sessionstack.com/how-javascript-works-memory-management-how-to-handle-4-common-memory-leaks-3f28b94cfbec" target="_blank" rel="external">How JavaScript works: memory management + how to handle 4 common memory leaks</a></li>
+<li><a href="http://www.memorymanagement.org/glossary/g.html#term-generational-garbage-collection" target="_blank" rel="external">Memory Management Reference</a></li>
+</ul>
+<hr>
+<blockquote>
+<p>声明:本资料仅供学习交流，严禁使用于任何商业用途! 如需转载，转载请注明出处。</p>
+</blockquote>
+<hr>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">archives</a></li>
+         
+          <li><a href="https://github.com/sgdh-fe">Github</a></li>
+         
+          <li><a href="http://git.dh.sogou-inc.com/groups/fe">Projects</a></li>
+         
+          <li><a href="/about/">About</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#内存生命周期"><span class="toc-number">1.</span> <span class="toc-text">内存生命周期:</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Javascript中的内存分配"><span class="toc-number">2.</span> <span class="toc-text">Javascript中的内存分配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GC-Garbage-collection"><span class="toc-number">3.</span> <span class="toc-text">GC(Garbage collection)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Reference-counting-garbage-collection（引用计数）"><span class="toc-number">3.1.</span> <span class="toc-text">Reference-counting garbage collection（引用计数）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#引用计数的限制：循环引用"><span class="toc-number">3.1.1.</span> <span class="toc-text">引用计数的限制：循环引用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#常见问题实例"><span class="toc-number">3.1.2.</span> <span class="toc-text">常见问题实例</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Mark-and-sweep-algorithm（标记清除）"><span class="toc-number">3.2.</span> <span class="toc-text">Mark-and-sweep algorithm（标记清除）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#循环引用不再是问题"><span class="toc-number">3.2.1.</span> <span class="toc-text">循环引用不再是问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#限制：需要明确无法到达的对象"><span class="toc-number">3.2.2.</span> <span class="toc-text">限制：需要明确无法到达的对象</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文章："><span class="toc-number">4.</span> <span class="toc-text">参考文章：</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://123fe.com/2017/09/30/JavaScript内存那点事/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&text=JavaScript内存那点事"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&title=JavaScript内存那点事"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&is_video=false&description=JavaScript内存那点事"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=JavaScript内存那点事&body=Check out this article: http://123fe.com/2017/09/30/JavaScript内存那点事/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&title=JavaScript内存那点事"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&title=JavaScript内存那点事"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&title=JavaScript内存那点事"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&title=JavaScript内存那点事"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://123fe.com/2017/09/30/JavaScript内存那点事/&name=JavaScript内存那点事&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2018 sgdhfe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">archives</a></li>
+         
+          <li><a href="https://github.com/sgdh-fe">Github</a></li>
+         
+          <li><a href="http://git.dh.sogou-inc.com/groups/fe">Projects</a></li>
+         
+          <li><a href="/about/">About</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+

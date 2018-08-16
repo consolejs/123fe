@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="要编写高性能的网站和应用，除了确保编写的代码能高效地运行外，还需要了解浏览器是如何进行渲染工作的。 浏览器主要组成结构  用户界面(User Interface)：包括地址栏、前进/后退按钮、书签菜单等。除了浏览器主窗口显示的您请求的页面外，其他显示的各个部分都属于用户界面。 浏览器引擎(Browser engine)：在用户界面(User Interface)和渲染引擎(Rendering en">
+<meta name="keywords" content="优化,渲染,render,硬件加速">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浏览器渲染简述">
+<meta property="og:url" content="http://123fe.com/2017/11/21/浏览器渲染简述/index.html">
+<meta property="og:site_name" content="Sogou.dh.fe">
+<meta property="og:description" content="要编写高性能的网站和应用，除了确保编写的代码能高效地运行外，还需要了解浏览器是如何进行渲染工作的。 浏览器主要组成结构  用户界面(User Interface)：包括地址栏、前进/后退按钮、书签菜单等。除了浏览器主窗口显示的您请求的页面外，其他显示的各个部分都属于用户界面。 浏览器引擎(Browser engine)：在用户界面(User Interface)和渲染引擎(Rendering en">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:image" content="https://skmukhiya.files.wordpress.com/2013/06/fb76d-layers-pagespeed-ce-mfe5f8ctav.png">
+<meta property="og:image" content="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/images/full-process.png">
+<meta property="og:image" content="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/images/cssom-construction.png?hl=zh-cn">
+<meta property="og:image" content="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/images/cssom-tree.png">
+<meta property="og:image" content="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/images/render-tree-construction.png?hl=zh-cn">
+<meta property="og:image" content="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/images/layout-viewport.png?hl=zh-cn">
+<meta property="og:image" content="http://123fe.com/2017/11/21/浏览器渲染简述/render.png">
+<meta property="og:image" content="http://www.chromium.org/_/rsrc/1479245083354/developers/design-documents/gpu-accelerated-compositing-in-chrome/the_compositing_forest.png">
+<meta property="og:image" content="http://img.blog.csdn.net/20140416142656281">
+<meta property="og:image" content="http://123fe.com/2017/11/21/浏览器渲染简述/tiles.png">
+<meta property="og:image" content="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-full.jpg">
+<meta property="og:image" content="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-no-layout.jpg">
+<meta property="og:image" content="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-no-layout-paint.jpg">
+<meta property="og:image" content="https://www.html5rocks.com/zh/tutorials/speed/high-performance-animations/cheap-operations.jpg">
+<meta property="og:updated_time" content="2018-08-16T02:52:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浏览器渲染简述">
+<meta name="twitter:description" content="要编写高性能的网站和应用，除了确保编写的代码能高效地运行外，还需要了解浏览器是如何进行渲染工作的。 浏览器主要组成结构  用户界面(User Interface)：包括地址栏、前进/后退按钮、书签菜单等。除了浏览器主窗口显示的您请求的页面外，其他显示的各个部分都属于用户界面。 浏览器引擎(Browser engine)：在用户界面(User Interface)和渲染引擎(Rendering en">
+<meta name="twitter:image" content="https://skmukhiya.files.wordpress.com/2013/06/fb76d-layers-pagespeed-ce-mfe5f8ctav.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>浏览器渲染简述</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">archives</a></li>
+         
+          <li><a href="https://github.com/sgdh-fe">Github</a></li>
+         
+          <li><a href="http://git.dh.sogou-inc.com/groups/fe">Projects</a></li>
+         
+          <li><a href="/about/">About</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2017/11/23/requestAnimationFrame/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2017/11/13/内存泄露之jQuery-cache/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://123fe.com/2017/11/21/浏览器渲染简述/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://123fe.com/2017/11/21/浏览器渲染简述/&text=浏览器渲染简述"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://123fe.com/2017/11/21/浏览器渲染简述/&title=浏览器渲染简述"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://123fe.com/2017/11/21/浏览器渲染简述/&is_video=false&description=浏览器渲染简述"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浏览器渲染简述&body=Check out this article: http://123fe.com/2017/11/21/浏览器渲染简述/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://123fe.com/2017/11/21/浏览器渲染简述/&title=浏览器渲染简述"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://123fe.com/2017/11/21/浏览器渲染简述/&title=浏览器渲染简述"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://123fe.com/2017/11/21/浏览器渲染简述/&title=浏览器渲染简述"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://123fe.com/2017/11/21/浏览器渲染简述/&title=浏览器渲染简述"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://123fe.com/2017/11/21/浏览器渲染简述/&name=浏览器渲染简述&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#浏览器主要组成结构"><span class="toc-number">1.</span> <span class="toc-text">浏览器主要组成结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#文档对象模型-DOM：Document-Object-Model）"><span class="toc-number">2.</span> <span class="toc-text">文档对象模型(DOM：Document Object Model）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CSS对象模型-CSSOM：CSS-Object-Model"><span class="toc-number">3.</span> <span class="toc-text">CSS对象模型(CSSOM：CSS Object Model)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#渲染树-RenderObject-tree，也称为Render-tree"><span class="toc-number">4.</span> <span class="toc-text">渲染树(RenderObject tree，也称为Render tree)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#布局-loayout"><span class="toc-number">5.</span> <span class="toc-text">布局(loayout)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#RenderLayer树-RenderLayer-tree"><span class="toc-number">6.</span> <span class="toc-text">RenderLayer树(RenderLayer tree)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#渲染方式"><span class="toc-number">7.</span> <span class="toc-text">渲染方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GrphicsLayer-tree-GrphicsLayer树"><span class="toc-number">8.</span> <span class="toc-text">GrphicsLayer tree(GrphicsLayer树)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Tile-Rendering-瓦片渲染"><span class="toc-number">9.</span> <span class="toc-text">Tile Rendering(瓦片渲染)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#流畅动画"><span class="toc-number">10.</span> <span class="toc-text">流畅动画</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#layout"><span class="toc-number">10.0.1.</span> <span class="toc-text">layout</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#paint"><span class="toc-number">10.0.2.</span> <span class="toc-text">paint</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#composite"><span class="toc-number">10.0.3.</span> <span class="toc-text">composite</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#优化"><span class="toc-number">10.0.4.</span> <span class="toc-text">优化</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">11.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文章："><span class="toc-number">12.</span> <span class="toc-text">参考文章：</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        浏览器渲染简述
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">singsong</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2017-11-21T08:05:04.000Z" itemprop="datePublished">2017-11-21</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/render/">render</a>, <a class="tag-link" href="/tags/优化/">优化</a>, <a class="tag-link" href="/tags/渲染/">渲染</a>, <a class="tag-link" href="/tags/硬件加速/">硬件加速</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>要编写高性能的网站和应用，除了确保编写的代码能高效地运行外，还需要了解浏览器是如何进行渲染工作的。</p>
+<h2 id="浏览器主要组成结构"><a href="#浏览器主要组成结构" class="headerlink" title="浏览器主要组成结构"></a>浏览器主要组成结构</h2><p><img src="https://skmukhiya.files.wordpress.com/2013/06/fb76d-layers-pagespeed-ce-mfe5f8ctav.png" alt=""></p>
+<ol>
+<li>用户界面(User Interface)：包括地址栏、前进/后退按钮、书签菜单等。除了浏览器主窗口显示的您请求的页面外，其他显示的各个部分都属于用户界面。</li>
+<li>浏览器引擎(Browser engine)：在用户界面(User Interface)和渲染引擎(Rendering engine)之间传送指令。</li>
+<li>渲染引擎(Rendering engine)：负责显示请求的内容。如果请求的内容是HTML，它就负责解析HTML和CSS内容，并将解析后的内容显示在屏幕上。</li>
+<li>网络(Networking)：用于网络调用，比如HTTP请求。其接口与平台无关，并为所有平台提供底层实现。</li>
+<li>JavaScript解释器(JavaScript Interperter)：用于解析和执行JavaScript代码。</li>
+<li>用户界面后端(UI Backend)：用于绘制基本的窗口小部件，比如组合框和窗口。其公开了与平台无关的通用接口，而在底层使用操作系统的用户界面方法。</li>
+<li>数据存储(Data storage)：这是持久层。浏览器需要在硬盘上保存各种数据，例如Cookies。浏览器还支持诸如localStorage，IndexedDB，WebSQL和FileSystem之类的存储机制。</li>
+</ol>
+<h2 id="文档对象模型-DOM：Document-Object-Model）"><a href="#文档对象模型-DOM：Document-Object-Model）" class="headerlink" title="文档对象模型(DOM：Document Object Model）"></a>文档对象模型(DOM：Document Object Model）</h2><p>本文主要介绍浏览器的渲染，即渲染引擎(Rendering engine)负责的工作: 将请求的HTML内容解析并渲染在屏幕上。<br>如下HTML结构，一个包含一些文本和一张图片：<br><figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width,initial-scale=1"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">link</span> <span class="attr">href</span>=<span class="string">"style.css"</span> <span class="attr">rel</span>=<span class="string">"stylesheet"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Critical Path<span class="tag">&lt;/<span class="name">title</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>Hello <span class="tag">&lt;<span class="name">span</span>&gt;</span>web performance<span class="tag">&lt;/<span class="name">span</span>&gt;</span> students!<span class="tag">&lt;/<span class="name">p</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">div</span>&gt;</span><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">"awesome-photo.jpg"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>浏览器是如何处理这个HTML页面：</p>
+<p><img src="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/images/full-process.png" alt=""></p>
+<ol>
+<li>转换(Conversion)：浏览器从磁盘或网络读取HTML的原始字节码，并根据文件的指定编码（例如 UTF-8）将它们转换成对应的字符。</li>
+<li>令牌化(Tokenizing)：浏览器将字符串转换成<a href="http://www.w3.org/TR/html5/" target="_blank" rel="external">W3C HTML5标准</a>规定的各种令牌，例如<code>&lt;html&gt;</code>、<code>&lt;body&gt;</code>，以及其他尖括号内的字符串。每个令牌都具有特殊含义和一组规则。</li>
+<li>词法分析(Lexing)：发出的令牌转换成定义其属性和规则的“对象”。</li>
+<li>DOM构建(DOM construction)：HTML标记定义不同标记之间的关系（一些标记包含在其他标记内），创建的对象链接在一个树数据结构内，此结构也会捕获原始标记中定义的父项-子项关系：HTML对象是body对象的父项，body是paragraph对象的父项，依此类推。</li>
+</ol>
+<p>整个过程的最终输出是HTML页面的文档对象模型 (DOM)，浏览器对页面进行的所有进一步处理都会用到它。浏览器每次处理HTML标记时，都会完成以上所有步骤：将字节转换成字符，确定令牌，将令牌转换成节点，然后构建DOM树。DOM树捕获文档标记的属性和关系，但并未处理元素在渲染后呈现的外观。那是CSSOM的责任。</p>
+<h2 id="CSS对象模型-CSSOM：CSS-Object-Model"><a href="#CSS对象模型-CSSOM：CSS-Object-Model" class="headerlink" title="CSS对象模型(CSSOM：CSS Object Model)"></a>CSS对象模型(CSSOM：CSS Object Model)</h2><p>在浏览器构建DOM遇到link标记时，该标记引用一个外部CSS样式表：style.css。由于预见到需要利用该资源来渲染页面，它会立即发出对该资源的请求，并返回以下内容：</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="selector-tag">body</span> &#123; <span class="attribute">font-size</span>: <span class="number">16px</span> &#125;</div><div class="line"><span class="selector-tag">p</span> &#123; <span class="attribute">font-weight</span>: bold &#125;</div><div class="line"><span class="selector-tag">span</span> &#123; <span class="attribute">color</span>: red &#125;</div><div class="line"><span class="selector-tag">p</span> <span class="selector-tag">span</span> &#123; <span class="attribute">display</span>: none &#125;</div><div class="line"><span class="selector-tag">img</span> &#123; <span class="attribute">float</span>: right &#125;</div></pre></td></tr></table></figure>
+<p>与处理HTML时类似，需要将收到的CSS规则转换成某种浏览器能够理解和处理的东西。因此会重复HTML过程，不过是为CSS而不是HTML：</p>
+<p><img src="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/images/cssom-construction.png?hl=zh-cn" alt=""></p>
+<p>CSS字节转换成字符，接着转换成令牌和节点，最后链接到CSSOM树结构内：</p>
+<p><img src="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/images/cssom-tree.png" alt="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/images/cssom-tree.png"></p>
+<p>CSSOM为何具有树结构？用于确定节点对象的计算样式。如span标记包含了<code>color:red</code>样式和继承于body标记的<code>font-size:16px</code>样式;</p>
+<p><u>注意：以上树并非完整的CSSOM树，它只是替代默认样式的自定义样式。每个浏览器都提供一组默认样式（也称为“User Agent 样式”），即不提供任何自定义样式时所看到的样式，自定义样式只是替换这些默认样式</u></p>
+<p>CSSOM是在DOM中的一些接口中，加入获取和操作CSS属性或接口的JavaScript接口，因而JavaScript可以动态操作CSS样式。DOM提供了接口让JavaScript修改HTML文档，CSSOM提供了接口让JavaScript获得和修改CSS代码设置的样式信息。</p>
+<h2 id="渲染树-RenderObject-tree，也称为Render-tree"><a href="#渲染树-RenderObject-tree，也称为Render-tree" class="headerlink" title="渲染树(RenderObject tree，也称为Render tree)"></a>渲染树(RenderObject tree，也称为Render tree)</h2><p>在DOM树中，存在不可见与可见节点之分。顾名思义，不可见节点是不需要绘制最终页面中的节点，如<code>meta</code>、<code>head</code>、<code>script</code>等，以及通过CSS样式<code>display:none</code>隐藏的节点。相反可见节点是用户可见的，如<code>body</code>、<code>div</code>、<code>span</code>、<code>canvas</code>、<code>img</code>等。<br>对于这些可见节点，浏览器需要将它们的内容绘制到最终的页面中，所以浏览器会为它们建立对应的RenderObject对象。一个RenderObject对象保存了为绘制DOM节点的各种信息。这些RenderObject对象与DOM对象类似，也构成一棵树，称为<strong>RenderObject tree</strong>。RenderObject树是基于DOM树建立起来的一棵新树，是为了布局计算和渲染等机制而构建的一种新的内部表示。RenderObject树节点与DOM树节点不是一一对应关系。因为创建一个RenderObject对象需要满足如下规则：</p>
+<ul>
+<li>DOM树的document节点</li>
+<li>DOM树中的可见节点，如<code>html</code>、<code>body</code>、<code>div</code>等。而浏览器不会为不可见节点创建RenderObject节点。</li>
+<li>某些情况下浏览器需要创建匿名的RenderObject节点，该节点不对应DOM树中的任何节点。</li>
+</ul>
+<p>RenderObject对象构成了RenderObject树，每个RenderObject对象保存了为绘制DOM节点的计算样式。RenderObject树也可以理解成由CSSOM树和DOM树合并成：</p>
+<p><img src="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/images/render-tree-construction.png?hl=zh-cn" alt=""></p>
+<h2 id="布局-loayout"><a href="#布局-loayout" class="headerlink" title="布局(loayout)"></a>布局(loayout)</h2><p>当浏览器创建RenderObject对象之后，每个对象并不知道自己在设备视口内的位置、大小等信息。浏览器根据<a href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_Box_Model" target="_blank" rel="external">盒模型(Box-model)</a>来计算它们的位置、大小等信息的过程称为布局计算（重排）。<br>布局计算是一个递归的过程，这是因为一个节点的大小通常需要先计算它的孩子节点的位置、大小等信息。为了计算节点在页面中的确切大小和位置，浏览器会从RenderObject树的根节点开始进行遍历。</p>
+<p>实例：<br><figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width,initial-scale=1"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Critial Path: Hello world!<span class="tag">&lt;/<span class="name">title</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">"width: 50%"</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">"width: 50%"</span>&gt;</span>Hello world!<span class="tag">&lt;/<span class="name">div</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>页面包含了两个嵌套div：父div将其的显示尺寸设置为视口宽度的50%，子div将其宽度设置为其父项的50%，即视口宽度的25%。</p>
+<p><img src="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/images/layout-viewport.png?hl=zh-cn" alt=""></p>
+<h2 id="RenderLayer树-RenderLayer-tree"><a href="#RenderLayer树-RenderLayer-tree" class="headerlink" title="RenderLayer树(RenderLayer tree)"></a>RenderLayer树(RenderLayer tree)</h2><p>浏览器渲染引擎并不是直接使用RenderObject树进行绘制，为了方便处理Positioning(定位)，Clipping(裁剪)，Overflow-scroll(页內滚动)，CSS Transform/Opacity/Animation/Filter，Mask or Reflection，Z-indexing(Z排序)等，浏览器需要会为一些特定的RenderObject生成对应的RenderLayer，并生成一棵对应的RenderLayer树。而这些特定的RenderObject跟对应的RenderLayer就是直属的关系，如果它们的子节点如果没有对应的RenderLayer，就从属于父节点的RenderLayer。最终，每一个RenderObject都会直接或者间接地从属于一个RenderLayer。因此RenderObject节点与RenderLayer节点不是一一对应关系，而是一对多的关系。那需要满足什么条件，渲染引擎才为RenderObject建立对应的RenderLayer：</p>
+<ul>
+<li>It’s the root object for the page</li>
+<li>It has explicit CSS position properties (relative, absolute or a transform)</li>
+<li>It is transparent</li>
+<li>Has overflow, an alpha mask or reflection</li>
+<li>Has a CSS filter</li>
+<li>Corresponds to <code>&lt;canvas&gt;</code> element that has a 3D (WebGL) context or an accelerated 2D context</li>
+<li>Corresponds to a <code>&lt;video&gt;</code> element</li>
+</ul>
+<p>翻译：</p>
+<ul>
+<li>DOM树的Document节点对应的RenderObject节点和HTML节点对应的RenderObject节点</li>
+<li>显式指定CSS position属性的RenderObject节点</li>
+<li>有透明度的RenderObject节点</li>
+<li>有overflow，alpha和reflection的样式RenderObject节点</li>
+<li>有filter样式的RenderObject节点</li>
+<li>使用Canvas 2D和3D(WebGL)技术的RenderObject节点</li>
+<li>video元素对应的RenderObject节点</li>
+</ul>
+<p>每个RenderLayer对象可以想象成图像中一个图层，各个图层叠加构成了一个图像。浏览器会遍历RenderLayer树，再遍历从属这个RenderLayer的RenderObject，RenderObject对象存储有绘制信息，并进行绘制。RenderLayer和RenderObject共同决定了最终呈现的网页内容，RenderLayer树决定了网页的绘制的层次顺序，而从属于RenderLayer的RenderObject决定了该RenderLayer的内容。</p>
+<h2 id="渲染方式"><a href="#渲染方式" class="headerlink" title="渲染方式"></a>渲染方式</h2><p>在完成构建RenderLayer树之后，浏览器会使用图形库将其构建的渲染模型绘制出来，该过程分为两个阶段：</p>
+<ul>
+<li>绘制：将从属每个RenderLayer图层上的RenderObject绘制在其RenderLayer上。即绘制（Paint）或者光栅化（Rasterization），将一些绘图指令转换成真正的像素颜色值。<ul>
+<li>软件绘图：CPU来完成绘图操作</li>
+<li>硬件加速绘图：GPU来完成绘图操作</li>
+</ul>
+</li>
+<li>合成(compositing)：将各个RenderLayer图层合并成到一个位图(Bitmap)中。同时还可能包括位移（Translation），缩放（Scale），旋转（Rotation），Alpha 合成等操作。</li>
+</ul>
+<p>渲染引擎的渲染，目前有三种网页的渲染方式：</p>
+<blockquote>
+<ul>
+<li>硬件加速合成(Accelerated Compositing)：使用GPU来完成合成工作。</li>
+<li>合成化渲染：使用合成(compositing)技术的渲染称。</li>
+</ul>
+</blockquote>
+<ul>
+<li>软件渲染方式：使用CPU来绘制每个RenderLayer图层的内容(RenderObject)到一个位图，即一块CPU使用的内存空间。绘制每一层的时候都会使用该位图，区别在于绘制的位置可能不一样，绘制顺序按照从后到前。因此软件渲染机制是没有合成阶段的。</li>
+<li>硬件加速渲染的合成化渲染方式：使用GPU来绘制所有合成层，并使用GPU硬件来加速合成。</li>
+<li>软件绘图的合成化渲染方式： 某些合成层使用CPU来绘图，另外一些使用GPU来绘制。对于使用CPU来绘制的图层，该层的绘制结果会先保存在CPU内存中，之后会被传输到GPU内存中，然后再使用GPU来完成合成工作。</li>
+</ul>
+<p><img src="./render.png" alt=""></p>
+<p>第二种和第三种渲染方式，都是使用了合成化渲染技术，合成工作也都是由GPU来做。对于常见的2D绘图操作，使用GPU来绘图不一定比使用CPU绘图在性能上有优势，例如绘制文字、点、线等，原因是CPU的使用缓冲机制有效减少了重复绘制的开销而且不需要考虑与GPU并行。另外，GPU的内存资源相对CPU的内存资源来说比较紧张，而且网页的分层使得GPU的内存使用相对比较多。鉴于此，就目前的情况来看，三者都存在是有其合理性的，下面分析一下它们的特点：</p>
+<ul>
+<li>软件渲染是目前很常见的技术，也是浏览器最早使用的渲染方式。这一技术比较节省内存，特别是宝贵的GPU内存，但是软件渲染只能处理2D方面的操作。简单的网页没有复杂绘图或者多媒体方面的需求，软件渲染方式就比较合适来渲染该类型的网页。问题是，一旦遇上了HTML5的很多新技术，软件渲染显得无能为力，一是因为能力不足；二是因为性能不好，例如视频、Canvas 2D等。所以，软件渲染技术被用的越来越少，特别是在移动领域。软件渲染同硬件加速渲染另外一个很不同的地方就是对更新区域的处理。当网页中有一个更新小型区域的请求（如动画）时，软件渲染可能只需要计算一个极小的区域，而硬件渲染可能需要重新绘制其中的一层或者多层，然后再合成这些层。硬件渲染的代价可能会大得多。</li>
+<li>对于硬件加速的合成化渲染方式来说，每个层的绘制和所有层的合成均使用GPU硬件来完成，这对需要使用3D绘图的操作来说特别合适。这种方式下，在RenderLayer树之后，浏览器还需要建立更多的内部表示，目的是支持硬件加速机制，这显然会消耗更多的内存资源。但是，一方面，硬件加速机制能够支持现在所有的HTML5定义的2D或者3D绘图标准；另一方面，关于更新区域的讨论，如果需要更新某个层的一个区域，因为软件渲染没有为每一层提供后端存储，因而它需要将和这个区域有重叠部分的所有层次的相关区域一次从后往前重新绘制一遍，而硬件加速渲染只需要重新绘制更新发生的层次，因而在某些情况下，软件渲染的代价又变得更大。当然，这取决于网页的结构和渲染策略。</li>
+<li>软件绘图的合成化渲染方式结合了前面两种方式的优点，这时因为很多网页可能既包含基本的HTML元素，也包含一些HTML5新功能，使用CPU绘图方式来绘制某些层，使用GPU来绘制其他一些层。原因当然是前面所述的基于性能和内存方面综合考虑的结果。</li>
+</ul>
+<blockquote>
+<p>浏览器还可以使用多线程的渲染架构，将网页内容绘制到后端存储的操作放到另外一个独立的线程（绘制线程），而原来线程转为合成线程，绘制线程跟合成线程之间可以使用同步，部分同步，完全异步等作业模式，让浏览器可以在性能与效果之间根据需要进行选择。</p>
+</blockquote>
+<h2 id="GrphicsLayer-tree-GrphicsLayer树"><a href="#GrphicsLayer-tree-GrphicsLayer树" class="headerlink" title="GrphicsLayer tree(GrphicsLayer树)"></a>GrphicsLayer tree(GrphicsLayer树)</h2><p>对于软件渲染而言，到RenderLayer树就结束了，后面不会建立其它额外的树来对应于RenderLayer树。但是，对于硬件渲染来说，在RenderLayer树之后，浏览器渲染引擎为硬件渲染提供了更多的内部结构来支持这个机制。</p>
+<p>在硬件加速渲染的合成化渲染和软件绘图的合成化渲染架构下，一个RenderLayer对象如果需要后端存储，它会创建一个RenderLayerBacking对象，该对象负责Renderlayer对象所需要的各种存储，理想情况下，每个RenderLayer都可以创建自己的后端存储，事实上不是所有RenderLayer都有自己的RenderLayerBacking对象。如果一个RenderLayer对象被像样的创建后端存储，那么将该RenderLayer称为合成层（Compositing Layer）。</p>
+<p>哪些RenderLayer对象可以是合成层？如果一个RenderLayer对象具有以下的特征之一，那么它就是合成层：</p>
+<ul>
+<li>Layer has 3D or perspective transform CSS properties</li>
+<li>Layer is used by &lt; video&gt; element using accelerated video decoding</li>
+<li>Layer is used by a &lt; canvas&gt; element with a 3D context or accelerated 2D context</li>
+<li>Layer is used for a composited plugin</li>
+<li>Layer uses a CSS animation for its opacity or uses an animated webkit transform</li>
+<li>Layer uses accelerated CSS filters</li>
+<li>Layer with a composited descendant has information that needs to be in the composited layer tree, such as a clip or reflection</li>
+<li>Layer has a sibling with a lower z-index which has a compositing layer (in other words the layer is rendered on top of a composited layer)</li>
+</ul>
+<p>翻译:</p>
+<ul>
+<li>RenderLayer具有3D或透视转换的CSS属性</li>
+<li>RenderLayer包含使用硬件加速的视频解码技术的<code>&lt;video&gt;</code>元素</li>
+<li>RenderLayer包含使用硬件加速的2D或WebGL-3D技术的<code>&lt;canvas&gt;</code>元素</li>
+<li>RenderLayer使用了合成插件。</li>
+<li>RenderLayer使用了<code>opacity</code>或<code>transform</code>动画</li>
+<li>RenderLayer使用了硬件加速的CSS Filters技术</li>
+<li>RenderLayer后代中包含了一个合成层（如有clip或reflection属性）</li>
+<li>RenderLayer有个一个z-index比自己小的合成层（即在一个合成层之上）</li>
+</ul>
+<p>每个合成层都有一个RenderLayerBacking，RenderLayerBacking负责管理RenderLayer所需要的所有后端存储，因为后端存储可能需要多个存储空间。在浏览器(WebKit)中，存储空间使用类GraphicsLayer来表示。浏览器会为这些RenderLayer创建对应的GraphicsLayer，不同的浏览器需要提供自己的GrphicsLayer实现用于管理存储空间的分配，释放，更新等等。拥有GrphicsLayer的RenderLayer会被绘制到自己的后端存储，而没有GrphicsLayer的RenderLayer它们会向上追溯有GrphicsLayer的父/祖先RenderLayer，直到Root RenderLayer为止，然后绘制在有GrphicsLayer的父/祖先RenderLayer的存储空间，而Root RenderLayer总是会创建一个GrphicsLayer并拥有自己独立的存储空间。在将每个合成图层包含的RenderLayer内容绘制在合成层的后端存储中，这里绘制可以是软件绘制或硬件绘制。接着由合成器(Compositor)将多个合成层合成起来，形成最终用户可见的网页，实际上就是一张图片。</p>
+<p>GraphicsLayer又构成了一棵与RenderLayer并行的树，而RenderLayer与GraphicsLayer的关系有些类似于RenderObject与RenderLayer之间的关系。如下是DOM树、RenderObject树、RenderLayer树、GraphicsLayer树关系图：</p>
+<p><img src="http://www.chromium.org/_/rsrc/1479245083354/developers/design-documents/gpu-accelerated-compositing-in-chrome/the_compositing_forest.png" alt=""></p>
+<p>这样可以合并一些RenderLayer层，从而减少内存的消耗。其次，合并之后，减少了合并带来的重绘性能和处理上的困难。<br>在硬件加速渲染的合成化渲染和软件绘图的合成化渲染架构下，RenderLayer的内容变化，只需要更新所属的GraphicsLayer的缓存即可，而缓存的更新，也只需要绘制直接或者间接属于这个GraphicsLayer的RenderLayer，而不是所有的RenderLayer。特别是一些特定的CSS样式属性的变化，实际上并不引起内容的变化，只需要改变一些GraphicsLayer的混合参数，然后重新混合即可，而混合相对绘制而言是很快的，这些特定的CSS样式属性我们一般称之为是被加速的，不同的浏览器支持的状况不太一样，但基本上CSS Transform &amp; Opacity在所有支持混合加速的浏览器上都是被加速的。被加速的CSS样式属性的动画，就比较容易达到60帧/每秒的流畅效果了。</p>
+<p><img src="http://img.blog.csdn.net/20140416142656281" alt=""></p>
+<p>不过并不是拥有独立缓存的RenderLayer越多越好，太多拥有独立缓存的RenderLayer会带来一些严重的副作用:</p>
+<ul>
+<li>它大大增加了内存的开销，这点在移动设备上的影响更大，甚至导致浏览器在一些内存较少的移动设备上无法很好地支持图层合成加速；</li>
+<li>它加大了合成的时间开销，导致合成性能的下降，而合成性能跟网页滚动/缩放操作的流畅度又息息相关，最终导致网页滚动/缩放的流畅度下降，让用户觉得操作不够流畅。</li>
+</ul>
+<h2 id="Tile-Rendering-瓦片渲染"><a href="#Tile-Rendering-瓦片渲染" class="headerlink" title="Tile Rendering(瓦片渲染)"></a>Tile Rendering(瓦片渲染)</h2><p>通常一个合成层的后端存储被分割成多个大小相同的瓦片状的小存储空间，每个瓦片可以理解为OpenGL中的一个纹理，合成层的结果被分开存储在这些瓦片中。为什么使用瓦片化的后端存储？</p>
+<ul>
+<li>DOM树种的html元素所在的层可能会比较大，因为网页的高度很大，如果只是使用一个后端存储的话，那么需要一个很大的纹理对象，但是实际的GPU硬件可能只支持非常有限的纹理大小。</li>
+<li>在一个比较大的合成层中，可能只是其中一部分发生变化，根据之前的介绍，需要重新绘制整个层，这样必然产生额外的开销，使用瓦片话的后端存储，就只需要重绘一些存在更新的瓦片。</li>
+<li>当层发生滚动的时候，一些瓦片可能不再需要，然后渲染引擎需要一些新的瓦片来绘制新的区域，这些大小相同的后端存储很容易重复利用。</li>
+</ul>
+<p><img src="./tiles.png" alt=""></p>
+<h2 id="流畅动画"><a href="#流畅动画" class="headerlink" title="流畅动画"></a>流畅动画</h2><p>网页加载后，绘制新的每一帧，一般都需要经过计算布局(layout)、绘图(paint)、合成（composite）三阶段。因此要想提高页面性能（或FPS），需要减少每一帧的时间。而在这三个阶段中，layout和paint比较耗时间，而合成需要的时间相对较少一些。</p>
+<h4 id="layout"><a href="#layout" class="headerlink" title="layout"></a>layout</h4><p>如果修改一个DOM元素的”layout”属性，也就是改变了元素的样式（比如宽度、高度或者位置等），那么浏览器会检查哪些元素需要重新布局，然后对页面激发一个reflow过程完成重新布局。被reflow的元素，接下来也会激发绘制过程，最后激发渲染层合并过程，生成最后的画面。<br><img src="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-full.jpg" alt=""></p>
+<h4 id="paint"><a href="#paint" class="headerlink" title="paint"></a>paint</h4><p>如果修改了“paint only”属性（例如背景图片、文字颜色或阴影等），即不会影响页面布局的属性，则浏览器会跳过布局，但仍将执行绘制。<br><img src="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-no-layout.jpg" alt=""></p>
+<h4 id="composite"><a href="#composite" class="headerlink" title="composite"></a>composite</h4><p>如果更改了一个既不要布局也不要绘制的属性，则浏览器将跳到只执行合成。这个最后的版本开销最小，最适合于应用生命周期中的高压力点，例如动画或滚动。</p>
+<p><img src="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-no-layout-paint.jpg" alt=""></p>
+<p><strong>如果想知道更改任何指定CSS属性将触发layout、paint、composite中的哪一个，请查看<a href="https://csstriggers.com/" target="_blank" rel="external">CSS触发器</a>。</strong></p>
+<h4 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h4><p>可以通过什么途径进行优化，减少每一帧的时间（避免过多layout或paint）：</p>
+<ul>
+<li>使用适合的网页分层技术减少layout和paint。一旦有请求更新，如果没有分层，渲染引擎可能需要重新绘制所有区域，因为计算更新部分对GPU来说可能消耗更多的时间。而网页分层之后，部分区域的更新可能只在网页的一层或几层，而不需要将整个网页重新绘制。通过重新绘制网页的一层或几层，并将它们和其他之前绘制完的层合并起来，既能使用GPU的能力，又能够减少重绘的开销。</li>
+<li><p>使用合成属性样式（opcity、tansform）来完成tansition或animation。当合成器合成时候，每个合成层都可以设置变形属性：位移（Translate）、缩放（Scale）、旋转（Rotation）、opacity，这些属性仅仅改变合成层的变换参数，而不需要layout和paint操作，极大地减少每一帧的渲染时间。</p>
+<p>即使用GPU硬件加速，为某些RenderLayer创建对应GraphicsLayer。通过为每一个合成层设置变形属性来完成tansition或animation，有效地避免relayout和repaint的开销。</p>
+<p><img src="https://www.html5rocks.com/zh/tutorials/speed/high-performance-animations/cheap-operations.jpg" alt=""></p>
+</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文是由几篇关于浏览器渲染的文章组合而成，可能有些概念比较抽象，不好理解，可以查看<strong>参考文章</strong>小节，获取更多信息。本文重点介绍了浏览器渲染引擎的渲染过程，涉及了DOM树、CSSOM树、RenderObject树、RenderLayer树、GraphicsLayer树。并对各种渲染模式进行了简单介绍，其中引入了硬件加速机制，还给出一些优化建议。了解这些知识点对我们开发高性能的web应用会有很大的帮助。</p>
+<h2 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h2><ul>
+<li><a href="http://www.chromium.org/developers/design-documents/gpu-accelerated-compositing-in-chrome" target="_blank" rel="external">GPU Accelerated Compositing in Chrome</a></li>
+<li><a href="https://www.html5rocks.com/zh/tutorials/internals/howbrowserswork/" target="_blank" rel="external">浏览器的工作原理：新式网络浏览器幕后揭秘</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/constructing-the-object-model?hl=zh-cn" target="_blank" rel="external">构建对象模型</a></li>
+<li><a href="https://rogeryi.wordpress.com/2014/04/16/how-rendering-work-in-webkit-and-blink/" target="_blank" rel="external">How Rendering Work (in WebKit and Blink)</a></li>
+<li><a href="http://blog.csdn.net/milado_nju" target="_blank" rel="external">WebKit技术内幕</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/performance/rendering/" target="_blank" rel="external">渲染性能</a></li>
+<li><a href="https://www.html5rocks.com/zh/tutorials/speed/high-performance-animations/" target="_blank" rel="external">High Performance Animations</a></li>
+</ul>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">archives</a></li>
+         
+          <li><a href="https://github.com/sgdh-fe">Github</a></li>
+         
+          <li><a href="http://git.dh.sogou-inc.com/groups/fe">Projects</a></li>
+         
+          <li><a href="/about/">About</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#浏览器主要组成结构"><span class="toc-number">1.</span> <span class="toc-text">浏览器主要组成结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#文档对象模型-DOM：Document-Object-Model）"><span class="toc-number">2.</span> <span class="toc-text">文档对象模型(DOM：Document Object Model）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CSS对象模型-CSSOM：CSS-Object-Model"><span class="toc-number">3.</span> <span class="toc-text">CSS对象模型(CSSOM：CSS Object Model)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#渲染树-RenderObject-tree，也称为Render-tree"><span class="toc-number">4.</span> <span class="toc-text">渲染树(RenderObject tree，也称为Render tree)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#布局-loayout"><span class="toc-number">5.</span> <span class="toc-text">布局(loayout)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#RenderLayer树-RenderLayer-tree"><span class="toc-number">6.</span> <span class="toc-text">RenderLayer树(RenderLayer tree)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#渲染方式"><span class="toc-number">7.</span> <span class="toc-text">渲染方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GrphicsLayer-tree-GrphicsLayer树"><span class="toc-number">8.</span> <span class="toc-text">GrphicsLayer tree(GrphicsLayer树)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Tile-Rendering-瓦片渲染"><span class="toc-number">9.</span> <span class="toc-text">Tile Rendering(瓦片渲染)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#流畅动画"><span class="toc-number">10.</span> <span class="toc-text">流畅动画</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#layout"><span class="toc-number">10.0.1.</span> <span class="toc-text">layout</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#paint"><span class="toc-number">10.0.2.</span> <span class="toc-text">paint</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#composite"><span class="toc-number">10.0.3.</span> <span class="toc-text">composite</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#优化"><span class="toc-number">10.0.4.</span> <span class="toc-text">优化</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">11.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文章："><span class="toc-number">12.</span> <span class="toc-text">参考文章：</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://123fe.com/2017/11/21/浏览器渲染简述/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://123fe.com/2017/11/21/浏览器渲染简述/&text=浏览器渲染简述"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://123fe.com/2017/11/21/浏览器渲染简述/&title=浏览器渲染简述"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://123fe.com/2017/11/21/浏览器渲染简述/&is_video=false&description=浏览器渲染简述"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浏览器渲染简述&body=Check out this article: http://123fe.com/2017/11/21/浏览器渲染简述/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://123fe.com/2017/11/21/浏览器渲染简述/&title=浏览器渲染简述"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://123fe.com/2017/11/21/浏览器渲染简述/&title=浏览器渲染简述"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://123fe.com/2017/11/21/浏览器渲染简述/&title=浏览器渲染简述"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://123fe.com/2017/11/21/浏览器渲染简述/&title=浏览器渲染简述"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://123fe.com/2017/11/21/浏览器渲染简述/&name=浏览器渲染简述&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2018 sgdhfe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">archives</a></li>
+         
+          <li><a href="https://github.com/sgdh-fe">Github</a></li>
+         
+          <li><a href="http://git.dh.sogou-inc.com/groups/fe">Projects</a></li>
+         
+          <li><a href="/about/">About</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+

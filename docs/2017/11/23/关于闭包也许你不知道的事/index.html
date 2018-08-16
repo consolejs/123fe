@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="当一个函数A返回一个内联函数B，即使函数A执行完，函数B也能访问函数A作用域内的变量。这就是一个闭包——————本质上闭包是将函数内部和外部连接起来的一座桥梁。 12345678910function foo(message) &amp;#123;    function closure() &amp;#123;        console.log(message)    &amp;#125;;    return">
+<meta name="keywords" content="闭包,closure">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于闭包也许你不知道的事">
+<meta property="og:url" content="http://123fe.com/2017/11/23/关于闭包也许你不知道的事/index.html">
+<meta property="og:site_name" content="Sogou.dh.fe">
+<meta property="og:description" content="当一个函数A返回一个内联函数B，即使函数A执行完，函数B也能访问函数A作用域内的变量。这就是一个闭包——————本质上闭包是将函数内部和外部连接起来的一座桥梁。 12345678910function foo(message) &amp;#123;    function closure() &amp;#123;        console.log(message)    &amp;#125;;    return">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:image" content="http://123fe.com/2017/11/23/关于闭包也许你不知道的事/closure.png">
+<meta property="og:image" content="http://123fe.com/2017/11/23/关于闭包也许你不知道的事/closure1.png">
+<meta property="og:image" content="http://123fe.com/2017/11/23/关于闭包也许你不知道的事/closure2.png">
+<meta property="og:image" content="http://123fe.com/2017/11/23/关于闭包也许你不知道的事/closure3.png">
+<meta property="og:image" content="http://123fe.com/2017/11/23/关于闭包也许你不知道的事/closure4.png">
+<meta property="og:image" content="http://123fe.com/2017/11/23/关于闭包也许你不知道的事/closure5.png">
+<meta property="og:updated_time" content="2018-08-16T02:52:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="关于闭包也许你不知道的事">
+<meta name="twitter:description" content="当一个函数A返回一个内联函数B，即使函数A执行完，函数B也能访问函数A作用域内的变量。这就是一个闭包——————本质上闭包是将函数内部和外部连接起来的一座桥梁。 12345678910function foo(message) &amp;#123;    function closure() &amp;#123;        console.log(message)    &amp;#125;;    return">
+<meta name="twitter:image" content="http://123fe.com/2017/11/23/关于闭包也许你不知道的事/closure.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>关于闭包也许你不知道的事</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">archives</a></li>
+         
+          <li><a href="https://github.com/sgdh-fe">Github</a></li>
+         
+          <li><a href="http://git.dh.sogou-inc.com/groups/fe">Projects</a></li>
+         
+          <li><a href="/about/">About</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2017/11/23/requestAnimationFrame/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&text=关于闭包也许你不知道的事"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&title=关于闭包也许你不知道的事"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&is_video=false&description=关于闭包也许你不知道的事"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=关于闭包也许你不知道的事&body=Check out this article: http://123fe.com/2017/11/23/关于闭包也许你不知道的事/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&title=关于闭包也许你不知道的事"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&title=关于闭包也许你不知道的事"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&title=关于闭包也许你不知道的事"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&title=关于闭包也许你不知道的事"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&name=关于闭包也许你不知道的事&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#实例"><span class="toc-number">1.</span> <span class="toc-text">实例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number"></span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文章"><span class="toc-number"></span> <span class="toc-text">参考文章</span></a>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        关于闭包也许你不知道的事
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">singsong</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2017-11-23T13:48:36.000Z" itemprop="datePublished">2017-11-23</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/closure/">closure</a>, <a class="tag-link" href="/tags/闭包/">闭包</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><img src="./closure.png" alt="closure"></p>
+<p>当一个函数A返回一个内联函数B，即使函数A执行完，函数B也能访问函数A作用域内的变量。这就是一个闭包——————本质上闭包是将函数内部和外部连接起来的一座桥梁。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params">message</span>) </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">function</span> <span class="title">closure</span>(<span class="params"></span>) </span>&#123;</div><div class="line">        <span class="built_in">console</span>.log(message)</div><div class="line">    &#125;;</div><div class="line">    <span class="keyword">return</span> closure;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 使用</span></div><div class="line"><span class="keyword">var</span> bar = foo(<span class="string">"hello closure!"</span>);</div><div class="line">bar()<span class="comment">// 返回 'hello closure!'</span></div></pre></td></tr></table></figure>
+<p>在函数foo内创建的函数closure对象是不能被回收掉的，因为它被全局变量bar引用，处于一直可访问状态。通过执行<code>bar()</code>可以打印出<code>hello closure!</code>。如果想释放掉可以将<code>bar = null</code>即可。</p>
+<p><u><strong>由于闭包会携带包含它的函数的作用域，因此会比其他函数占用更多的内存。过度使用闭包可能会导致内存占用过多。</strong></u></p>
+<h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&lt;!DOCTYPE html&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">"en"</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"ie=edge"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">title</span>&gt;</span>Closure<span class="tag">&lt;/<span class="name">title</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">p</span>&gt;</span>不断单击【click】按钮<span class="tag">&lt;/<span class="name">p</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">button</span> <span class="attr">id</span>=<span class="string">"click_button"</span>&gt;</span>Click<span class="tag">&lt;/<span class="name">button</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="undefined"></span></div><div class="line"><span class="javascript">    <span class="function"><span class="keyword">function</span> <span class="title">f</span>(<span class="params"></span>) </span>&#123;</span></div><div class="line"><span class="javascript">      <span class="keyword">var</span> str = <span class="built_in">Array</span>(<span class="number">10000</span>).join(<span class="string">'#'</span>);</span></div><div class="line"><span class="javascript">      <span class="keyword">var</span> foo = &#123;</span></div><div class="line"><span class="javascript">        name: <span class="string">'foo'</span></span></div><div class="line"><span class="undefined">      &#125;</span></div><div class="line"><span class="javascript">      <span class="function"><span class="keyword">function</span> <span class="title">unused</span>(<span class="params"></span>) </span>&#123;</span></div><div class="line"><span class="javascript">        <span class="keyword">var</span> message = <span class="string">'it is only a test message'</span>;</span></div><div class="line"><span class="javascript">        str = <span class="string">'unused: '</span> + str;</span></div><div class="line"><span class="undefined">      &#125;</span></div><div class="line"><span class="javascript">      <span class="function"><span class="keyword">function</span> <span class="title">getData</span>(<span class="params"></span>) </span>&#123;</span></div><div class="line"><span class="javascript">        <span class="keyword">return</span> <span class="string">'data'</span>;</span></div><div class="line"><span class="undefined">      &#125;</span></div><div class="line"><span class="javascript">      <span class="keyword">return</span> getData;</span></div><div class="line"><span class="undefined">    &#125;</span></div><div class="line"><span class="undefined"></span></div><div class="line"><span class="javascript">    <span class="keyword">var</span> list = [];</span></div><div class="line"><span class="undefined">    </span></div><div class="line"><span class="javascript">    <span class="built_in">document</span>.querySelector(<span class="string">'#click_button'</span>).addEventListener(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span></div><div class="line"><span class="undefined">      list.push(f());</span></div><div class="line"><span class="javascript">    &#125;, <span class="literal">false</span>);</span></div><div class="line"><span class="undefined">  </span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>这里结合Chrome的Devtools-&gt;Memory工具进行分析，操作步骤如下：</p>
+<p><u><strong>注：最好在隐身窗口中进行分析工作，避免浏览器插件影响分析结果</strong></u></p>
+<ol>
+<li>选中【Record allocation timeline】选项</li>
+<li>执行一次CG</li>
+<li>单击【start】按钮开始记录堆分析</li>
+<li>连续单击【click】按钮十多次</li>
+<li>停止记录堆分析</li>
+</ol>
+<p><img src="./closure1.png" alt="closure"></p>
+<p>上图中蓝色柱形条表示随着时间新分配的内存。选中其中某条蓝色柱形条，过滤出对应新分配的对象：</p>
+<p><img src="./closure2.png" alt="closure"></p>
+<p>查看对象的详细信息：</p>
+<p><img src="./closure3.png" alt="closure"></p>
+<p>从图可知，在返回的闭包作用链(Scopes)中携带有它所在函数的作用域，作用域中还包含一个str字段。而str字段并没有在返回getData()中使用过。为什么会存在在作用域中，按理应该被GC回收掉的？</p>
+<p>原因是在相同作用域内创建的多个内部函数对象是共享同一个<a href="http://dmitrysoshnikov.com/ecmascript/chapter-2-variable-object/" target="_blank" rel="external">变量对象（variable object）</a>。如果创建的内部函数没有被其他对象引用，不管内部函数是否引用外部函数的变量和函数，在外部函数执行完，对应变量对象便会被销毁。反之，如果内部函数中存在有对外部函数变量或函数的访问（可以不是被引用的内部函数），并且存在某个或多个内部函数被其他对象引用，那么就会形成闭包，外部函数的变量对象就会存在于闭包函数的作用域链中。这样确保了闭包函数有权访问外部函数的所有变量和函数。了解了问题产生的原因，便可以对症下药了。对代码做如下修改：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">f</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="keyword">var</span> str = <span class="built_in">Array</span>(<span class="number">10000</span>).join(<span class="string">'#'</span>);</div><div class="line">  <span class="keyword">var</span> foo = &#123;</div><div class="line">    name: <span class="string">'foo'</span></div><div class="line">  &#125;</div><div class="line">  <span class="function"><span class="keyword">function</span> <span class="title">unused</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="keyword">var</span> message = <span class="string">'it is only a test message'</span>;</div><div class="line">    <span class="comment">// str = 'unused: ' + str; //删除该条语句</span></div><div class="line">  &#125;</div><div class="line">  <span class="function"><span class="keyword">function</span> <span class="title">getData</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">'data'</span>;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> getData;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">var</span> list = [];</div><div class="line"></div><div class="line"><span class="built_in">document</span>.querySelector(<span class="string">'#click_button'</span>).addEventListener(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</div><div class="line">  list.push(f());</div><div class="line">&#125;, <span class="literal">false</span>);</div></pre></td></tr></table></figure>
+<p>getData()和unused()内部函数共享f函数对应的变量对象，因为unused()内部函数访问了f作用域内str变量，所以str字段存在于f变量对象中。加上getData()内部函数被返回，被其他对象引用，形成了闭包，因此对应的f变量对象存在于闭包函数的作用域链中。这里只要将函数unused中<code>str = &#39;unused: &#39; + str;</code>语句删除便可解决问题。</p>
+<p><img src="./closure4.png" alt="closure"></p>
+<p>查看一下闭包信息：</p>
+<p><img src="./closure5.png" alt="closure"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>闭包是JavaScript中很重要的概念，理解好它对我们掌握JavaScript很关键。也许你个人认为你对它很了解，但当因它产生问题时，才感悟自己对它了解甚少。如本文提到：<u><strong>在相同作用域内创建的多个内部函数对象是共享同一个变量对象</strong></u>。不管怎么样希望你能从本文中有所收获~。~</p>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ul>
+<li><a href="https://blog.meteor.com/an-interesting-kind-of-javascript-memory-leak-8b47d2e7f156" target="_blank" rel="external">An interesting kind of JavaScript memory leak</a></li>
+<li><a href="http://mrale.ph/blog/2012/09/23/grokking-v8-closures-for-fun.html" target="_blank" rel="external">Grokking V8 closures for fun (and profit?)</a></li>
+</ul>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">archives</a></li>
+         
+          <li><a href="https://github.com/sgdh-fe">Github</a></li>
+         
+          <li><a href="http://git.dh.sogou-inc.com/groups/fe">Projects</a></li>
+         
+          <li><a href="/about/">About</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#实例"><span class="toc-number">1.</span> <span class="toc-text">实例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number"></span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文章"><span class="toc-number"></span> <span class="toc-text">参考文章</span></a>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&text=关于闭包也许你不知道的事"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&title=关于闭包也许你不知道的事"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&is_video=false&description=关于闭包也许你不知道的事"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=关于闭包也许你不知道的事&body=Check out this article: http://123fe.com/2017/11/23/关于闭包也许你不知道的事/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&title=关于闭包也许你不知道的事"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&title=关于闭包也许你不知道的事"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&title=关于闭包也许你不知道的事"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&title=关于闭包也许你不知道的事"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://123fe.com/2017/11/23/关于闭包也许你不知道的事/&name=关于闭包也许你不知道的事&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2018 sgdhfe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">archives</a></li>
+         
+          <li><a href="https://github.com/sgdh-fe">Github</a></li>
+         
+          <li><a href="http://git.dh.sogou-inc.com/groups/fe">Projects</a></li>
+         
+          <li><a href="/about/">About</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+

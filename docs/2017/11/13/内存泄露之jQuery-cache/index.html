@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="jQuery没有将事件和数据绑定在DOM节点上，而是将这些信息储存在$.cache对象上。jQuery对象每次新增事件或数据时，都在$.cache新增一条数据。而$.cache会持有对应DOM节点的引用，如果没有正确删除DOM节点，会导致DOM节点不能被回收。即DOM节点已从DOM中删除，但依然还存在内存中，没有被CG回收。正确的删除方式是通过jQuery的删除方法来移除：remove(),em">
+<meta name="keywords" content="内存泄露,优化,$.cache,jquery">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内存泄露之jQuery.cache">
+<meta property="og:url" content="http://123fe.com/2017/11/13/内存泄露之jQuery-cache/index.html">
+<meta property="og:site_name" content="Sogou.dh.fe">
+<meta property="og:description" content="jQuery没有将事件和数据绑定在DOM节点上，而是将这些信息储存在$.cache对象上。jQuery对象每次新增事件或数据时，都在$.cache新增一条数据。而$.cache会持有对应DOM节点的引用，如果没有正确删除DOM节点，会导致DOM节点不能被回收。即DOM节点已从DOM中删除，但依然还存在内存中，没有被CG回收。正确的删除方式是通过jQuery的删除方法来移除：remove(),em">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:image" content="http://123fe.com/2017/11/13/内存泄露之jQuery-cache/jquery.jpg">
+<meta property="og:image" content="http://123fe.com/2017/11/13/内存泄露之jQuery-cache/jquery1_x.png">
+<meta property="og:image" content="http://123fe.com/2017/11/13/内存泄露之jQuery-cache/jquery2_x.png">
+<meta property="og:image" content="http://123fe.com/2017/11/13/内存泄露之jQuery-cache/jquery_cache_1_x.png">
+<meta property="og:image" content="http://123fe.com/2017/11/13/内存泄露之jQuery-cache/jquery_cache_2_x.png">
+<meta property="og:updated_time" content="2018-08-16T02:52:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="内存泄露之jQuery.cache">
+<meta name="twitter:description" content="jQuery没有将事件和数据绑定在DOM节点上，而是将这些信息储存在$.cache对象上。jQuery对象每次新增事件或数据时，都在$.cache新增一条数据。而$.cache会持有对应DOM节点的引用，如果没有正确删除DOM节点，会导致DOM节点不能被回收。即DOM节点已从DOM中删除，但依然还存在内存中，没有被CG回收。正确的删除方式是通过jQuery的删除方法来移除：remove(),em">
+<meta name="twitter:image" content="http://123fe.com/2017/11/13/内存泄露之jQuery-cache/jquery.jpg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>内存泄露之jQuery.cache</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">archives</a></li>
+         
+          <li><a href="https://github.com/sgdh-fe">Github</a></li>
+         
+          <li><a href="http://git.dh.sogou-inc.com/groups/fe">Projects</a></li>
+         
+          <li><a href="/about/">About</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2017/11/21/浏览器渲染简述/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2017/11/10/IE-8循环引用导致的内存泄露/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&text=内存泄露之jQuery.cache"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&title=内存泄露之jQuery.cache"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&is_video=false&description=内存泄露之jQuery.cache"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=内存泄露之jQuery.cache&body=Check out this article: http://123fe.com/2017/11/13/内存泄露之jQuery-cache/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&title=内存泄露之jQuery.cache"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&title=内存泄露之jQuery.cache"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&title=内存泄露之jQuery.cache"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&title=内存泄露之jQuery.cache"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&name=内存泄露之jQuery.cache&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#上述提到不正确的删除方式，会导致DOM节点不能被回收，而导致内存泄露问题。如使用JavaScript内置方法（如removeChild，innerHTML）来删除jQuery绑定了事件或数据的节点。"><span class="toc-number">1.</span> <span class="toc-text">上述提到不正确的删除方式，会导致DOM节点不能被回收，而导致内存泄露问题。如使用JavaScript内置方法（如removeChild，innerHTML）来删除jQuery绑定了事件或数据的节点。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#上述实例都是绑定事件的，接下来看看绑定数据的例子：假如通过jQuery创建一个DOM元素，并设置一个data，但没有将其添加到DOM中。代码如下："><span class="toc-number">2.</span> <span class="toc-text">上述实例都是绑定事件的，接下来看看绑定数据的例子：假如通过jQuery创建一个DOM元素，并设置一个data，但没有将其添加到DOM中。代码如下：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么remove-empty-html-能正确移除DOM节点"><span class="toc-number"></span> <span class="toc-text">为什么remove(),empty(),html()能正确移除DOM节点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么jQuery没有将事件信息存储在DOM元素上，而是将其保存在-cache中？"><span class="toc-number"></span> <span class="toc-text">为什么jQuery没有将事件信息存储在DOM元素上，而是将其保存在$.cache中？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#对比测试"><span class="toc-number"></span> <span class="toc-text">对比测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number"></span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文章："><span class="toc-number"></span> <span class="toc-text">参考文章：</span></a>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        内存泄露之jQuery.cache
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">singsong</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2017-11-13T08:51:49.000Z" itemprop="datePublished">2017-11-13</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/cache/">$.cache</a>, <a class="tag-link" href="/tags/jquery/">jquery</a>, <a class="tag-link" href="/tags/优化/">优化</a>, <a class="tag-link" href="/tags/内存泄露/">内存泄露</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><img src="./jquery.jpg" alt="jquery.jpg"></p>
+<p>jQuery没有将事件和数据绑定在DOM节点上，而是将这些信息储存在<code>$.cache</code>对象上。jQuery对象每次新增事件或数据时，都在<code>$.cache</code>新增一条数据。而<code>$.cache</code>会持有对应DOM节点的引用，如果没有正确删除DOM节点，会导致DOM节点不能被回收。即DOM节点已从DOM中删除，但依然还存在内存中，没有被CG回收。正确的删除方式是通过jQuery的删除方法来移除：<code>remove()</code>,<code>empty()</code>,<code>html()</code>;</p>
+<h4 id="上述提到不正确的删除方式，会导致DOM节点不能被回收，而导致内存泄露问题。如使用JavaScript内置方法（如removeChild，innerHTML）来删除jQuery绑定了事件或数据的节点。"><a href="#上述提到不正确的删除方式，会导致DOM节点不能被回收，而导致内存泄露问题。如使用JavaScript内置方法（如removeChild，innerHTML）来删除jQuery绑定了事件或数据的节点。" class="headerlink" title="上述提到不正确的删除方式，会导致DOM节点不能被回收，而导致内存泄露问题。如使用JavaScript内置方法（如removeChild，innerHTML）来删除jQuery绑定了事件或数据的节点。"></a>上述提到不正确的删除方式，会导致DOM节点不能被回收，而导致内存泄露问题。如使用JavaScript内置方法（如removeChild，innerHTML）来删除jQuery绑定了事件或数据的节点。</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> $element = $(<span class="string">'&lt;div&gt;&lt;/div&gt;'</span>);</div><div class="line">$element.on(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123; ... &#125;);</div><div class="line">$element.appendTo(<span class="built_in">document</span>.body); </div><div class="line"><span class="keyword">var</span> nativeElement = $element.get(<span class="number">0</span>);</div><div class="line"><span class="built_in">document</span>.body.removeChild(nativeElement); <span class="comment">// ← 通过removeChild方法移除nativeElement</span></div></pre></td></tr></table></figure>
+<p>上述代码中使用内置的removeChild方法移除nativeElement，此时仅仅只是将nativeElement与DOM脱离而已，并没有真正地删除nativeElement。原因是$element绑定了事件，<code>$.cache</code>中持有对$element引用，导致nativeElement不能被回收掉。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> $element = $(<span class="string">'&lt;div&gt;&lt;/div&gt;'</span>);</div><div class="line">$element.on(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123; ... &#125;);<span class="comment">// ← 绑定事件</span></div><div class="line">$element.appendTo(<span class="built_in">document</span>.body);</div><div class="line"><span class="built_in">document</span>.body.innerHTML = <span class="string">''</span>;<span class="comment">// ← 通过innerHTML方法移除body内的节点</span></div></pre></td></tr></table></figure>
+<p>innerHTML方法也存在同样的问题。</p>
+<h4 id="上述实例都是绑定事件的，接下来看看绑定数据的例子：假如通过jQuery创建一个DOM元素，并设置一个data，但没有将其添加到DOM中。代码如下："><a href="#上述实例都是绑定事件的，接下来看看绑定数据的例子：假如通过jQuery创建一个DOM元素，并设置一个data，但没有将其添加到DOM中。代码如下：" class="headerlink" title="上述实例都是绑定事件的，接下来看看绑定数据的例子：假如通过jQuery创建一个DOM元素，并设置一个data，但没有将其添加到DOM中。代码如下："></a>上述实例都是绑定事件的，接下来看看绑定数据的例子：假如通过jQuery创建一个DOM元素，并设置一个data，但没有将其添加到DOM中。代码如下：</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$element = $(<span class="string">'&lt;div&gt;&lt;/div&gt;'</span>);</div><div class="line">$element.data(<span class="string">'foo'</span>, <span class="string">'bar'</span>);</div></pre></td></tr></table></figure>
+<p>即使代码执行完，$element也不能被回收。这是因为$.cahce阻止CG的回收。需要通过<code>$element.remove()</code>,<code>$element.parent.empty()</code>或<code>$elememnt.removeData()</code>;</p>
+<h2 id="为什么remove-empty-html-能正确移除DOM节点"><a href="#为什么remove-empty-html-能正确移除DOM节点" class="headerlink" title="为什么remove(),empty(),html()能正确移除DOM节点"></a>为什么<code>remove()</code>,<code>empty()</code>,<code>html()</code>能正确移除DOM节点</h2><p>因为它们都会调用<code>jQuery.cleanData()</code>方法来删除<code>$.cache</code>缓存的对应数据，然后在调用JavaScript内置删除方法来移除DOM节点。</p>
+<p><a href="https://github.com/jquery/jquery/blob/1.12-stable/src/manipulation.js#L461" target="_blank" rel="external">empty()方法源码</a>：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">empty: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">	<span class="keyword">var</span> elem,</div><div class="line">		i = <span class="number">0</span>;</div><div class="line"></div><div class="line">	<span class="keyword">for</span> ( ; ( elem = <span class="keyword">this</span>[ i ] ) != <span class="literal">null</span>; i++ ) &#123;</div><div class="line"></div><div class="line">		<span class="comment">// Remove element nodes and prevent memory leaks </span></div><div class="line">     <span class="comment">// 删除元素节点并阻止内存泄露</span></div><div class="line">		<span class="keyword">if</span> ( elem.nodeType === <span class="number">1</span> ) &#123;</div><div class="line">			jQuery.cleanData( getAll( elem, <span class="literal">false</span> ) );<span class="comment">// ← 清除elem在$.cache中的数据，释放掉$.cache对elem的引用</span></div><div class="line">		&#125;</div><div class="line"></div><div class="line">		<span class="comment">// Remove any remaining nodes</span></div><div class="line">		<span class="keyword">while</span> ( elem.firstChild ) &#123;</div><div class="line">			elem.removeChild( elem.firstChild );</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		<span class="comment">// If this is a select, ensure that it displays empty (#12336)</span></div><div class="line">		<span class="comment">// Support: IE&lt;9</span></div><div class="line">		<span class="keyword">if</span> ( elem.options &amp;&amp; jQuery.nodeName( elem, <span class="string">"select"</span> ) ) &#123;</div><div class="line">			elem.options.length = <span class="number">0</span>;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="keyword">return</span> <span class="keyword">this</span>;</div><div class="line">&#125;,</div></pre></td></tr></table></figure>
+<p><a href="https://github.com/jquery/jquery/blob/1.12-stable/src/manipulation.js#L265" target="_blank" rel="external">remove()方法源码</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">remove</span>(<span class="params"> elem, selector, keepData </span>) </span>&#123;</div><div class="line">	<span class="keyword">var</span> node,</div><div class="line">		elems = selector ? jQuery.filter( selector, elem ) : elem,</div><div class="line">		i = <span class="number">0</span>;</div><div class="line"></div><div class="line">	<span class="keyword">for</span> ( ; ( node = elems[ i ] ) != <span class="literal">null</span>; i++ ) &#123;</div><div class="line"></div><div class="line">		<span class="keyword">if</span> ( !keepData &amp;&amp; node.nodeType === <span class="number">1</span> ) &#123;</div><div class="line">			jQuery.cleanData( getAll( node ) );<span class="comment">// ← 清除elem在$.cache中的数据，释放掉$.cache对elem的引用</span></div><div class="line">		&#125;</div><div class="line"></div><div class="line">		<span class="keyword">if</span> ( node.parentNode ) &#123;</div><div class="line">			<span class="keyword">if</span> ( keepData &amp;&amp; jQuery.contains( node.ownerDocument, node ) ) &#123;</div><div class="line">				setGlobalEval( getAll( node, <span class="string">"script"</span> ) );</div><div class="line">			&#125;</div><div class="line">			node.parentNode.removeChild( node );</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="keyword">return</span> elem;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><a href="https://github.com/jquery/jquery/blob/1.12-stable/src/manipulation.js#L496" target="_blank" rel="external">html()方法源码</a><br><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line">html: <span class="function"><span class="keyword">function</span>(<span class="params"> value </span>) </span>&#123;</div><div class="line">	<span class="keyword">return</span> access( <span class="keyword">this</span>, <span class="function"><span class="keyword">function</span>(<span class="params"> value </span>) </span>&#123;</div><div class="line">		<span class="keyword">var</span> elem = <span class="keyword">this</span>[ <span class="number">0</span> ] || &#123;&#125;,</div><div class="line">			i = <span class="number">0</span>,</div><div class="line">			l = <span class="keyword">this</span>.length;</div><div class="line"></div><div class="line">		<span class="keyword">if</span> ( value === <span class="literal">undefined</span> ) &#123;</div><div class="line">			<span class="keyword">return</span> elem.nodeType === <span class="number">1</span> ?</div><div class="line">				elem.innerHTML.replace( rinlinejQuery, <span class="string">""</span> ) :</div><div class="line">				<span class="literal">undefined</span>;</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		<span class="comment">// See if we can take a shortcut and just use innerHTML</span></div><div class="line">		<span class="keyword">if</span> ( <span class="keyword">typeof</span> value === <span class="string">"string"</span> &amp;&amp; !rnoInnerhtml.test( value ) &amp;&amp;</div><div class="line">			( support.htmlSerialize || !rnoshimcache.test( value )  ) &amp;&amp;</div><div class="line">			( support.leadingWhitespace || !rleadingWhitespace.test( value ) ) &amp;&amp;</div><div class="line">			!wrapMap[ ( rtagName.exec( value ) || [ <span class="string">""</span>, <span class="string">""</span> ] )[ <span class="number">1</span> ].toLowerCase() ] ) &#123;</div><div class="line"></div><div class="line">			value = jQuery.htmlPrefilter( value );</div><div class="line"></div><div class="line">			<span class="keyword">try</span> &#123;</div><div class="line">				<span class="keyword">for</span> ( ; i &lt; l; i++ ) &#123;</div><div class="line"></div><div class="line">					<span class="comment">// Remove element nodes and prevent memory leaks</span></div><div class="line">           <span class="comment">// 删除元素节点并阻止内存泄露</span></div><div class="line">					elem = <span class="keyword">this</span>[ i ] || &#123;&#125;;</div><div class="line">					<span class="keyword">if</span> ( elem.nodeType === <span class="number">1</span> ) &#123;</div><div class="line">						jQuery.cleanData( getAll( elem, <span class="literal">false</span> ) );<span class="comment">// ← 清除elem在$.cache中的数据，释放掉$.cache对elem的引用</span></div><div class="line">						elem.innerHTML = value;</div><div class="line">					&#125;</div><div class="line">				&#125;</div><div class="line"></div><div class="line">				elem = <span class="number">0</span>;</div><div class="line"></div><div class="line">			<span class="comment">// If using innerHTML throws an exception, use the fallback method</span></div><div class="line">			&#125; <span class="keyword">catch</span> ( e ) &#123;&#125;</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		<span class="keyword">if</span> ( elem ) &#123;</div><div class="line">			<span class="keyword">this</span>.empty().append( value );</div><div class="line">		&#125;</div><div class="line">	&#125;, <span class="literal">null</span>, value, <span class="built_in">arguments</span>.length );</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="为什么jQuery没有将事件信息存储在DOM元素上，而是将其保存在-cache中？"><a href="#为什么jQuery没有将事件信息存储在DOM元素上，而是将其保存在-cache中？" class="headerlink" title="为什么jQuery没有将事件信息存储在DOM元素上，而是将其保存在$.cache中？"></a>为什么jQuery没有将事件信息存储在DOM元素上，而是将其保存在$.cache中？</h2><p>因为在IE&lt;8版本中，JScript垃圾回收器仅管理JScript对象生命周期而不会管理DOM对象的(即DOM对象有自己的垃圾回收器)。即JScript回收器不会解除掉DOM对象与Jscript对象之间的相互引用（循环引用），从而导致内存泄露。为了避免在低版本IE和Firefox中内存泄露，jQuery创建了<code>$.cache</code>来解决这个问题。更多信息参考<a href="http://123fe.cn/2017/11/10/IE-8%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8%E5%AF%BC%E8%87%B4%E7%9A%84%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_blank" rel="external">IE&lt;8循环引用导致的内存泄露</a>。</p>
+<blockquote>
+<p> jQuery 2.0 leaves behind the older Internet Explorer 6, 7, and 8 browsers. In return it is smaller, faster, and can be used in JavaScript environments where the code needed for old-IE compatibility often causes problems of its own. But don’t worry, the jQuery team still supports the 1.x branch which does run on IE 6/7/8. You can (and should) continue to use jQuery 1.9 (and the upcoming 1.10) on web sites that need to accommodate older browsers. The final 2.0.0 file is 12 percent smaller than the 1.9.1 file, thanks to the elimination of patches that were only needed for IE 6, 7, and 8. —-<a href="http://blog.jquery.com/2013/04/18/jquery-2-0-released/" target="_blank" rel="external">jQuery 2.0 Released</a></p>
+</blockquote>
+<p><strong>大概意思</strong>：<u>jQuery2.0版本之后，jQuery团队同时维护两个分支：2.x版本和1.x版本。jQuery2.0开始放弃IE6/7/8支持(注：也包含3.x版本)。而jQuery1.x版本会继续支持IE6/7/8。因为2.x版本删除了IE6/7/8补丁代码，整体大小比1.x版本小12%，性能更好。</u></p>
+<p>即从jQuery2.0开始不支持IE6/7/8，就不存在循环引用的问题，因此$.cache也从jQuery2.x版本中移除。jQuery2.0开始将事件信息存储存储在元素节点上，这样就不存在上述的内存泄露问题了。</p>
+<h2 id="对比测试"><a href="#对比测试" class="headerlink" title="对比测试"></a>对比测试</h2><p>分别使用jquery1.x和jquery2.x版本创建一个1000个元素并绑定click事件，创建完后再通过JavaScript删除方法移除，并通过<strong>Devtools</strong>–&gt;<strong>Performance</strong>做分析，操作步骤如下：</p>
+<ol>
+<li>开启<strong>Performance</strong>项的记录</li>
+<li>执行一次CG，创建基本参考线</li>
+<li>单击【run】按钮，创建1000个元素</li>
+<li>再次单击【run】按钮，创建1000个元素</li>
+<li>单击【clear】按钮，通过JavaScript删除方法移除刚创建2000个元素</li>
+<li>执行一次CG</li>
+</ol>
+<p>结果图如下：</p>
+<p><img src="./jquery1_x.png" alt=""></p>
+<hr>
+<p><img src="./jquery2_x.png" alt=""></p>
+<p><strong>从对比结果图证实了jquery2.x将事件信息存储在元素对象上。这里也可以分别打印<code>$.cache</code>，对比一下输出结果：</strong></p>
+<p><img src="./jquery_cache_1_x.png" alt=""></p>
+<hr>
+<p><img src="./jquery_cache_2_x.png" alt=""></p>
+<p>这里没有讨论jquery3.x版本，因为它与jquery2.x版本一样不支持低版本IE，也不存在<code>$.cache</code>问题，所以不再赘述。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文主要讨论了jquery的<code>$.cache</code>引起的内存泄露问题。在使用jquery1.x版本时，需要关注一下这一问题。如jquery.lazyload.js和单页应用都很容易引起这方面的问题。如何避免呢？本文也提到了，通过jquery的删除方法来移除:<code>remove()</code>,<code>empty()</code>,<code>html()</code>。<strong>在使用第三方库时一定要记住：通过任何第三方库创建的对象，最好通过该库提供的删除方法来删除。</strong></p>
+<h2 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h2><ul>
+<li><a href="https://makandracards.com/makandra/31325-how-to-create-memory-leaks-in-jquery" target="_blank" rel="external">How to create memory leaks in jQuery</a></li>
+<li><a href="https://stackoverflow.com/questions/9304768/what-is-the-purpose-of-cache-in-jquery" target="_blank" rel="external">What is the purpose of $.cache in jQuery?</a></li>
+<li><a href="http://www.crockford.com/javascript/memory/leak.html" target="_blank" rel="external">JScript Memory Leaks</a></li>
+<li><a href="http://isaacschlueter.com/2006/10/msie-memory-leaks/" target="_blank" rel="external">Memory Leaks in Microsoft Internet Explorer</a></li>
+</ul>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">archives</a></li>
+         
+          <li><a href="https://github.com/sgdh-fe">Github</a></li>
+         
+          <li><a href="http://git.dh.sogou-inc.com/groups/fe">Projects</a></li>
+         
+          <li><a href="/about/">About</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#上述提到不正确的删除方式，会导致DOM节点不能被回收，而导致内存泄露问题。如使用JavaScript内置方法（如removeChild，innerHTML）来删除jQuery绑定了事件或数据的节点。"><span class="toc-number">1.</span> <span class="toc-text">上述提到不正确的删除方式，会导致DOM节点不能被回收，而导致内存泄露问题。如使用JavaScript内置方法（如removeChild，innerHTML）来删除jQuery绑定了事件或数据的节点。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#上述实例都是绑定事件的，接下来看看绑定数据的例子：假如通过jQuery创建一个DOM元素，并设置一个data，但没有将其添加到DOM中。代码如下："><span class="toc-number">2.</span> <span class="toc-text">上述实例都是绑定事件的，接下来看看绑定数据的例子：假如通过jQuery创建一个DOM元素，并设置一个data，但没有将其添加到DOM中。代码如下：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么remove-empty-html-能正确移除DOM节点"><span class="toc-number"></span> <span class="toc-text">为什么remove(),empty(),html()能正确移除DOM节点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么jQuery没有将事件信息存储在DOM元素上，而是将其保存在-cache中？"><span class="toc-number"></span> <span class="toc-text">为什么jQuery没有将事件信息存储在DOM元素上，而是将其保存在$.cache中？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#对比测试"><span class="toc-number"></span> <span class="toc-text">对比测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number"></span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文章："><span class="toc-number"></span> <span class="toc-text">参考文章：</span></a>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&text=内存泄露之jQuery.cache"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&title=内存泄露之jQuery.cache"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&is_video=false&description=内存泄露之jQuery.cache"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=内存泄露之jQuery.cache&body=Check out this article: http://123fe.com/2017/11/13/内存泄露之jQuery-cache/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&title=内存泄露之jQuery.cache"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&title=内存泄露之jQuery.cache"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&title=内存泄露之jQuery.cache"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&title=内存泄露之jQuery.cache"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://123fe.com/2017/11/13/内存泄露之jQuery-cache/&name=内存泄露之jQuery.cache&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2018 sgdhfe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">archives</a></li>
+         
+          <li><a href="https://github.com/sgdh-fe">Github</a></li>
+         
+          <li><a href="http://git.dh.sogou-inc.com/groups/fe">Projects</a></li>
+         
+          <li><a href="/about/">About</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+
