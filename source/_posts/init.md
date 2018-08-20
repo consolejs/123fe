@@ -28,7 +28,7 @@ more: [🌴🌴](https://hexo.io/zh-cn/docs/server.html)
 ### 生成静态资源
 
 ``` bash
-$ hexo generate
+$ sh build.sh
 ```
 
 more: [🌸🌸](https://hexo.io/zh-cn/docs/generating.html)
@@ -36,7 +36,7 @@ more: [🌸🌸](https://hexo.io/zh-cn/docs/generating.html)
 ### 部署到github
 
 ``` bash
-$ hexo deploy
+$ git push origin master
 ```
 
 more: [🌹🌹](https://hexo.io/zh-cn/docs/deployment.html)
