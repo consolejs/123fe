@@ -23,8 +23,11 @@
     "hexo-server": "^0.2.0",
     "hoek": "^5.0.4",
     "lodash": "^4.17.10",
+    "mime": "^2.3.1",
     "no-case": "^2.3.2",
     "node-mime": "^1.0.0",
-    "tough-cookie": "^2.4.3"
+    "sshpk": "^1.14.2",
+    "tough-cookie": "^2.4.3",
+    "uglify-js": "^3.4.7"
   }
 }
