@@ -32,12 +32,12 @@ function gitpush()
 		read commit_msg
         echo  "--------------------->"
         echo  "🐙 正在提交...🐙 :"
-        echo  "--------------------->"
+        echo  "----------------"
 		# 判断是否commit成功
 		var=$(git commit -m "$commit_msg" 2>&1)
 		echo $var
 		if [[ "$var" =~ $error_str ]]; then
-            echo  "--------------------->"
+            echo  "----------------"
 			echo "😥提交错误😥 "
             echo  "--------------------->"
 		else
@@ -50,7 +50,7 @@ function gitpush()
 
 
 	# push
-	while [ "1" = "1" ]
+	while [ "1" != "1" ]
 	do
 		echo "***开始push本地仓库***"
 		var=$(git push -u origin master 2>&1)
