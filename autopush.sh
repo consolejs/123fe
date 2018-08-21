@@ -30,16 +30,18 @@ function gitpush()
 	do
 		echo  "🌻 输入commit内容🌻 :"
 		read commit_msg
-        echo  "---------------------"
+        echo  "--------------------->"
         echo  "🐙 正在提交...🐙 :"
+        echo  "--------------------->"
 		# 判断是否commit成功
 		var=$(git commit -m "$commit_msg" 2>&1)
 		echo $var
 		if [[ "$var" =~ $error_str ]]; then
 			echo "***提交错误***"
 		else
+            echo  "--------------------->"
             echo  "👏 提交成功👏 "
-            echo  "---------------------"
+            echo  "--------------------->"
 			break
 		fi
 	done
@@ -69,7 +71,9 @@ function gitpush()
 			echo $var
 		else
 			echo $var
-			echo "***push完成***"
+            echo  "--------------------->"
+            echo  "👏 push完成👏 "
+            echo  "--------------------->"
 			break
 		fi
 	done
