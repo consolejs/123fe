@@ -50,22 +50,22 @@ function gitpush()
 
 
 	# push
-	while [ "1" != "1" ]
+	while [ "1" = "1" ]
 	do
 		echo "***开始push本地仓库***"
 		var=$(git push -u origin master 2>&1)
 		if [[ $var =~ $error_str ]]; then
-			echo -n "推送失败，未添加远程仓库，是否添加远程仓库(y/n): "
-			read add_origin_repo
-			if [[ $add_origin_repo = "y" ]]; then
-				echo -n "输入远程仓库地址:"
-				read origin_add
-				var=$(git remote add origin $origin_add 2>&1)
-				echo $var
-			else
-				echo "***退出***"
-				break
-			fi
+			# echo -n "推送失败，未添加远程仓库，是否添加远程仓库(y/n): "
+			# read add_origin_repo
+			# if [[ $add_origin_repo = "y" ]]; then
+			# 	echo -n "输入远程仓库地址:"
+			# 	read origin_add
+			# 	var=$(git remote add origin $origin_add 2>&1)
+			# 	echo $var
+			# else
+			# 	echo "***退出***"
+			# 	break
+			# fi
 			var=$(git push -u origin master 2>&1)
 		elif [[ $var =~ "git pull" ]]; then
 			echo "***pull远程仓库***"
