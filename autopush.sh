@@ -40,12 +40,17 @@ function gitpush()
             echo  "--------------------->"
 			echo "😥提交错误😥 "
             echo  "--------------------->"
+		else
+            # echo  "--------------------->"
+            # echo  "👏 提交成功👏 "
+            # echo  "--------------------->"
+			break
 		fi
 	done
 
 
 	# push
-	while [ "1" != "1" ]
+	while [ "1" = "1" ]
 	do
 		echo "***开始push本地仓库***"
 		var=$(git push -u origin master 2>&1)
