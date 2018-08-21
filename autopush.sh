@@ -1,5 +1,20 @@
 #!/bin/sh
 
+echo  "👉 生成博客静态资源: 👉 **"
+
+hexo generate  && cp -r public/. docs
+
+echo  "---------------------"
+
+echo  "🎈 远程库地址: 🎈"
+
+git remote -v
+
+echo  "---------------------"
+
+
+
+
 function gitpush()
 {
 
@@ -16,7 +31,6 @@ function gitpush()
 	do
 		echo -n "输入commit内容:"
 		read commit_msg
-		echo $commit_msg
 		# 判断是否commit成功
 		var=$(git commit -m "$commit_msg" 2>&1)
 		echo $var
