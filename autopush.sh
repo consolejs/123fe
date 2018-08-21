@@ -46,8 +46,8 @@ function autoPush()
             echo  "--------------------->"
             break
 		else
-            echo  "--------------------->"
-            echo  "👏 commint👏 "
+            # echo  "--------------------->"
+            # echo  "👏 commint👏 "
 			break
 		fi
 	done
