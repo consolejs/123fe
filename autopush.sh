@@ -10,7 +10,7 @@ hexo generate  && cp -r public/. docs
 
 echo  "----------------"
 
-echo  "🎈 远程库地址🎈 :"
+echo  "🎈远程库地址🎈 :"
 
 git remote -v
 
