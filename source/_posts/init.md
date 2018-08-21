@@ -1,10 +1,5 @@
 ---
-title: 🌴 Init 🌴
-date: 2017-08-28 11:13:14
-author: Kun
----
----
-title: 🌴 Init 🌴
+title: ✨ Init ✨
 date: 2017-08-28 11:13:14
 author: Kun
 ---
