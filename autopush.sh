@@ -40,12 +40,12 @@ function autoPush()
 		echo $var
 		if [[ "$var" =~ $error_str ]]; then
             echo  "----------------"
-			echo "😥提交错误😥 "
+			echo "😥 提交错误😥 "
             echo  "--------------------->"
             break
 		else
             echo  "--------------------->"
-            echo  "👏 successful commint👏 "
+            echo  "👏 commint👏 "
             echo  "--------------------->"
 			break
 		fi
