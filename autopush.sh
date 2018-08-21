@@ -69,9 +69,9 @@ function gitpush()
 			# 	break
 			# fi
 			var=$(git push -u origin master 2>&1)
-		elif [[ $var =~ "git pull" ]]; then
+		elif [[ $var =~ "git pull origin master" ]]; then
 			echo "***pull远程仓库***"
-			var=$(git pull 2>&1)
+			var=$(git pull origin master 2>&1)
 			echo $var
 		else
 			echo $var
