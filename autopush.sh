@@ -84,6 +84,7 @@ function gitpush()
 }
 
 
+# 执行push方法
 gitpush
 
 # echo -n "push当前项目到Git:(y/n)"
