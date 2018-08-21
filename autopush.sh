@@ -50,7 +50,7 @@ function autopush()
 	while [ "1" = "1" ]
 	do
         echo  "----------------"
-		echo  "🐎 正在push到远程库...🐎  :"
+		echo  "😉正在push到远程库...😉   :"
         echo  "----------------"
 		var=$(git push -u origin master 2>&1)
 		if [[ $var =~ $error_str ]]; then
