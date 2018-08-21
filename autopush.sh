@@ -53,7 +53,7 @@ function gitpush()
 	while [ "1" = "1" ]
 	do
         echo  "----------------"
-		echo  "♥ 正在push到远程库...♥ :"
+		echo  "🐎 正在push到远程库...🐎  :"
         echo  "----------------"
 		var=$(git push -u origin master 2>&1)
 		if [[ $var =~ $error_str ]]; then
@@ -70,7 +70,7 @@ function gitpush()
 			# fi
 			var=$(git push -u origin master 2>&1)
 		elif [[ $var =~ "git pull" ]]; then
-			echo "***pull远程仓库***"
+			echo "😻 pull远程仓库😻 "
 			var=$(git pull 2>&1)
 			echo $var
 		else
