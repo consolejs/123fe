@@ -1,17 +1,19 @@
 #!/bin/sh
 
+echo  "--------------------->"
+
 echo  "👉 生成博客静态资源👉 : **"
 
 
 hexo generate  && cp -r public/. docs
 
-echo  "---------------------"
+echo  "----------------"
 
 echo  "🎈 远程库地址🎈 :"
 
 git remote -v
 
-echo  "---------------------"
+echo  "----------------"
 
 
 function autoPush()
