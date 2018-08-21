@@ -37,18 +37,15 @@ function gitpush()
 		var=$(git commit -m "$commit_msg" 2>&1)
 		echo $var
 		if [[ "$var" =~ $error_str ]]; then
-			echo "***提交错误***"
-		else
             echo  "--------------------->"
-            echo  "👏 提交成功👏 "
+			echo "😥提交错误😥 "
             echo  "--------------------->"
-			break
 		fi
 	done
 
 
 	# push
-	while [ "1" = "1" ]
+	while [ "1" != "1" ]
 	do
 		echo "***开始push本地仓库***"
 		var=$(git push -u origin master 2>&1)
