@@ -52,7 +52,9 @@ function gitpush()
 	# push
 	while [ "1" = "1" ]
 	do
+        echo  "----------------"
 		echo  "♥ 正在push到远程库...♥ :"
+        echo  "----------------"
 		var=$(git push -u origin master 2>&1)
 		if [[ $var =~ $error_str ]]; then
 			# echo -n "推送失败，未添加远程仓库，是否添加远程仓库(y/n): "
