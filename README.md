@@ -1,12 +1,12 @@
 
 博客由[Hexo](https://hexo.io/)搭建，hexo是一款基于Node.js的静态博客框架。
 
-配合[GitHub Pages](https://pages.github.com/)
-，将博客静态资源托管在托管在 GitHub 上。
+配合[GitHub Pages](https://pages.github.com/)，将资源托管在托管在 GitHub 上。
 
 ## 快速开始
+``` bash
 npm install
-
+```
 
 ### 创建一篇新文章
 
