@@ -35,7 +35,7 @@ function autoPush()
 		echo  "🌻 输入commit内容🌻 :"
 		read commit_msg
         echo  "--------------------->"
-        echo  "🐙 提交日志中...🐙 :"
+        echo  "🐙 提交日志中...🐙 : $commit_msg:"
         echo  "----------------"
 		# 判断是否commit成功
 		var=$(git commit -m "$commit_msg" 2>&1)
@@ -48,7 +48,6 @@ function autoPush()
 		else
             echo  "--------------------->"
             echo  "👏 commint👏 "
-            echo  "--------------------->"
 			break
 		fi
 	done
