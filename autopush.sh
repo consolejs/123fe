@@ -14,13 +14,13 @@ git remote -v
 echo  "---------------------"
 
 
-function autopush()
+function autoPush()
 {
-
+    # git返回信息中包含的错误字符串
 	error_str="fatal"
-	origin_add=""
 
 	# 仓库add
+    # 2>&1 的意思就是将标准错误重定向到标准输出。
 	var=$(git add . 2>&1)
 	echo $var
 
@@ -41,9 +41,9 @@ function autopush()
             echo  "--------------------->"
             break
 		else
-            # echo  "--------------------->"
-            # echo  "👏 提交成功👏 "
-            # echo  "--------------------->"
+            echo  "--------------------->"
+            echo  "👏 successful commint👏 "
+            echo  "--------------------->"
 			break
 		fi
 	done
@@ -72,5 +72,5 @@ function autopush()
 }
 
 
-# push
-autopush
+# Push
+autoPush
