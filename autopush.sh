@@ -1,11 +1,5 @@
 #!/bin/sh
 
-
-
-
-git pull
-
-
 echo  "👉 生成博客静态资源👉 : **"
 
 
@@ -45,6 +39,7 @@ function autopush()
             echo  "----------------"
 			echo "😥提交错误😥 "
             echo  "--------------------->"
+            break
 		else
             # echo  "--------------------->"
             # echo  "👏 提交成功👏 "
