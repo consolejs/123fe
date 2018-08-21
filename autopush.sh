@@ -31,7 +31,7 @@ function gitpush()
 		echo  "🌻 输入commit内容🌻 :"
 		read commit_msg
         echo  "--------------------->"
-        echo  "🐙 正在提交...🐙 :"
+        echo  "🐙 提交日志中...🐙 :"
         echo  "----------------"
 		# 判断是否commit成功
 		var=$(git commit -m "$commit_msg" 2>&1)
@@ -52,7 +52,7 @@ function gitpush()
 	# push
 	while [ "1" = "1" ]
 	do
-		echo "***开始push本地仓库***"
+		echo  "♥ 正在push到远程库...♥ :"
 		var=$(git push -u origin master 2>&1)
 		if [[ $var =~ $error_str ]]; then
 			# echo -n "推送失败，未添加远程仓库，是否添加远程仓库(y/n): "
@@ -73,7 +73,7 @@ function gitpush()
 			echo $var
 		else
 			echo $var
-            echo  "--------------------->"
+            echo  "----------------"
             echo  "👏 push完成👏 "
             echo  "--------------------->"
 			break
