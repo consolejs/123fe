@@ -1,16 +1,16 @@
 #!/bin/sh
 
-echo  "👉 生成博客静态资源: 👉 **"
+echo  "👉 生成博客静态资源👉 : **"
 
-hexo generate  && cp -r public/. docs
+# hexo generate  && cp -r public/. docs
 
-echo  "---------------------"
-
-echo  "🎈 远程库地址: 🎈"
-
-git remote -v
-
-echo  "---------------------"
+# echo  "---------------------"
+#
+# echo  "🎈 远程库地址🎈 :"
+#
+# git remote -v
+#
+# echo  "---------------------"
 
 
 
@@ -25,19 +25,21 @@ function gitpush()
 	var=$(git add . 2>&1)
 	echo $var
 
-
 	# commit
 	while [ "1" = "1"  ]
 	do
-		echo -n "输入commit内容:"
+		echo  "🌻 输入commit内容🌻 :"
 		read commit_msg
+        echo  "---------------------"
+        echo  "🐙 正在提交...🐙 :"
 		# 判断是否commit成功
 		var=$(git commit -m "$commit_msg" 2>&1)
 		echo $var
 		if [[ "$var" =~ $error_str ]]; then
 			echo "***提交错误***"
 		else
-			echo "***提交成功***"
+            echo  "👏 提交成功👏 "
+            echo  "---------------------"
 			break
 		fi
 	done
@@ -74,6 +76,8 @@ function gitpush()
 }
 
 
+gitpush
+
 # echo -n "push当前项目到Git:(y/n)"
 # read is_current
 # push_folder=""
@@ -88,8 +92,6 @@ function gitpush()
 # 	push_folder=$(pwd)
 # fi
 
-
-gitpush
 
 # echo "项目地址:" $push_folder
 # dir=$(ls -al $push_folder | awk '/^d/ {print $NF}')
