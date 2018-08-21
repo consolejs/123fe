@@ -2,6 +2,11 @@
 
 echo  "👉 生成博客静态资源👉 : **"
 
+
+git pull origin master
+
+
+
 hexo generate  && cp -r public/. docs
 
 echo  "---------------------"
