@@ -3,17 +3,17 @@ nav:
     Github: https://github.com/sgdh-fe
     Projects: http://git.dh.sogou-inc.com/groups/fe
     About: /about/
-    
+
 customize:
     gravatar:
-        email: 
+        email:
     logo:
         enabled: true
         width: 50
         height: 50
         url: /images/logo.png
         gravatar: false
-    favicon: 
+    favicon:
       # eg. generate with http://realfavicongenerator.net/
       desktop:
         url: /images/favicon.ico
@@ -29,8 +29,8 @@ customize:
         # twitter: /
         # facebook: /
         # linkedin: /
-    show_all_posts: false
-    post_count: 5
+    show_all_posts: true
+    post_count: 10
     highlight: rainbow
 
 # RSS
