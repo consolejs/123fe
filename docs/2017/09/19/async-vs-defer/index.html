@@ -18,7 +18,7 @@
 <meta property="og:image" content="http://123fe.com/2017/09/19/async-vs-defer/script.svg">
 <meta property="og:image" content="http://123fe.com/2017/09/19/async-vs-defer/script-async.svg">
 <meta property="og:image" content="http://123fe.com/2017/09/19/async-vs-defer/script-defer.svg">
-<meta property="og:updated_time" content="2018-08-16T02:52:40.000Z">
+<meta property="og:updated_time" content="2018-08-21T07:12:34.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="async-vs-defer">
 <meta name="twitter:description" content="async与defer都是用来延迟（异步）加载脚本，但两者之间还是存在一些区别的，因此使用场景也有所不同。  Legend scriptscript标签不带async或defer特性时。当浏览器解析HTML遇到该script标签时，会暂停解析工作。然后会发起脚本请求，在脚本下载完便开始执行，只有在脚本执行完之后才恢复HTML解析。  script with asyncscript标签">
@@ -172,9 +172,9 @@
 <li>如果脚本较小，并且被其他带<strong>async</strong>的脚本依赖，可以将该脚本直接内联script标签中，并放置在<strong>async</strong>脚本之前</li>
 </ul>
 <p></p>
-<h2 id="兼容"><a href="#兼容" class="headerlink" title="兼容"></a>兼容</h2><p>在&lt;=IE9浏览器对<strong>defer</strong>的实现存在一些bug，如defer不能保证script的执行顺序，如果需要支持&lt;=IE9，不建议使用<strong>defer</strong>，如果scirpts的执行顺序重要，可以不设置任何特性，<a href="https://github.com/h5bp/lazyweb-requests/issues/42" target="_blank" rel="external">了解更多</a>。</p>
+<h2 id="兼容"><a href="#兼容" class="headerlink" title="兼容"></a>兼容</h2><p>在&lt;=IE9浏览器对<strong>defer</strong>的实现存在一些bug，如defer不能保证script的执行顺序，如果需要支持&lt;=IE9，不建议使用<strong>defer</strong>，如果scirpts的执行顺序重要，可以不设置任何特性，<a href="https://github.com/h5bp/lazyweb-requests/issues/42" target="_blank" rel="noopener">了解更多</a>。</p>
 <h2 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h2><ul>
-<li><a href="http://www.growingwiththeweb.com/2014/02/async-vs-defer-attributes.html" target="_blank" rel="external">async vs defer attributes</a></li>
+<li><a href="http://www.growingwiththeweb.com/2014/02/async-vs-defer-attributes.html" target="_blank" rel="noopener">async vs defer attributes</a></li>
 </ul>
 <hr>
 <blockquote>
